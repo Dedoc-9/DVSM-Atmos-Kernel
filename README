@@ -251,3 +251,43 @@
 // Everything else is enforcement.
 //
 // =====================================================
+# Addendum: DVSM v1.0.0-canonical Release Notes
+**Document ID:** DVSM-REL-2024-v1.0  
+**Architectural Status:** Hardened Specification  
+
+---
+
+### 1. System Identity
+DVSM v1.0 (Codename: **Atomos**) is a mathematically closed, deterministic vector state machine. It formalizes a 6-layer stack that isolates **Authoritative Truth** (Layer 1) from **Interpretive Context** (Layer 2) and **Physical Substrate** (Layer 4).
+
+### 2. Core Invariants
+The following rules are non-negotiable for any valid DVSM implementation:
+*   **Sequential Integrity:** The sequence index must increment exactly once per pulse, regardless of commit or rejection.
+*   **Integer Authoritarianism:** All authoritative state transitions must occur using fixed-point integer arithmetic to prevent cross-hardware floating-point drift.
+*   **Asynchronous Isolation:** The kernel must have zero knowledge of its observers. Interpretation cannot influence execution.
+*   **Provenance Compiling:** Ingestion is restricted to `DVSMValidatedIntent` packets—pre-verified, pre-normalized, and cryptographically bound to an author.
+
+### 3. Repository Manifest
+The canonical DVSM implementation is contained within three primary files and one diagnostic extension:
+
+
+| File | Layer | Role |
+| :--- | :--- | :--- |
+| `DVSMKernelStrategy.swift` | L1, L5, L6 | Constitutional Invariants & Formal Law |
+| `DVSMCausalInvarianceLayer.swift` | L5 | Mathematical Consistency & Replay Logic |
+| `DVSMUnifiedSpecification.swift` | L1–L4 | Unified Architectural & Execution Blueprint |
+| `DVSMSpectralObserver.swift` | L2.5 | (Optional) Signal Conditioning & Noise Deconstruction |
+
+### 4. Technical Specifications
+*   **Fixed-Point Scaling:** Standardized at $2^{-10}$ (1 unit = 1024) for the `DVSMFixedVector` primitive.
+*   **Causal Hashing:** SHA-256 bound to both the `DVSMBitBlock` and the `SequenceIndex`.
+*   **Clocking:** Recommended 60Hz Fixed-Tick loop with a "Most Recent Wins" (MRW) ingestion policy.
+*   **Concurrency:** Validated for Swift 6 Actor-isolation and Thread-Affinity pinning.
+
+### 5. Final Statement of Correctness
+DVSM v1.0 is not merely a software library; it is a **Causal Machine**. By stripping away the non-determinism of wall-clocks, floating-point math, and I/O from the execution core, it provides a "Black Box of Truth" that is replayable, verifiable, and structurally immortal.
+
+---
+*Copyright © 2024 Daniel J. Dillberg. All Rights Reserved.*  
+*Recursive Identifier: [DVSM-SIGNAL-v21-B]*
+
