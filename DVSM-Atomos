@@ -1,0 +1,193 @@
+// Author: Daniel J. Dillberg
+// =====================================================
+// DVSM KERNEL CONSTITUTIONAL 
+// WHITEPAPER AUTHORITY BLOCK
+// =====================================================
+//
+// SYSTEM NAME:
+// DVSM (Deterministic Vector State Machine)
+//
+// DOCUMENT TYPE:
+// Kernel Constitutional Specification (Layer 1)
+//
+// VERSION:
+// v∞ — Deterministic Closure Epoch
+//
+// AUTHOR:
+// Daniel J. Dillberg
+//
+// PRIMARY PURPOSE:
+// This document defines the minimal executable truth of the DVSM system.
+// It is not an implementation guide. It is a causal contract.
+//
+// -----------------------------------------------------
+// 1. WHITEPAPER THESIS
+// -----------------------------------------------------
+//
+// DVSM is a deterministic, single-authority state transition kernel
+// that produces reproducible system evolution through discrete pulses.
+//
+// The system explicitly rejects:
+//   - nondeterministic execution paths
+//   - asynchronous mutation of authoritative state
+//   - floating-point dependence in kernel logic
+//   - IO-bound or timing-dependent state transitions
+//
+// All external systems are observational only.
+//
+// -----------------------------------------------------
+// 2. CORE THEORETICAL CLAIM
+// -----------------------------------------------------
+//
+// The DVSM Kernel defines a closed causal loop:
+//
+//   INPUT → PULSE → STATE TRANSITION → COMMIT → HASH OUTPUT
+//
+// No external system participates in mutation of authoritative state.
+//
+// This establishes a bounded, replayable causality domain.
+//
+// -----------------------------------------------------
+// 3. AUTHORITY PRINCIPLE
+// -----------------------------------------------------
+//
+// There exists exactly ONE mutation authority:
+//
+//   DVSMKernel.commit(state, input)
+//
+// All other subsystems are strictly observational.
+//
+// Any system capable of mutation is, by definition,
+// part of the Kernel or invalid.
+//
+// -----------------------------------------------------
+// 4. DETERMINISM INVARIANT
+// -----------------------------------------------------
+//
+// Given identical initial state + identical input sequence:
+//
+//   SYSTEM(t) == SYSTEM'(t)
+//
+// must hold for all valid execution environments.
+//
+// Determinism is enforced via:
+//   - fixed-point arithmetic in kernel
+//   - canonical serialization order
+//   - sequence-locked transitions
+//   - rejection-preserving lineage continuity
+//
+// -----------------------------------------------------
+// 5. OBSERVATIONAL SEPARATION PRINCIPLE
+// -----------------------------------------------------
+//
+// Systems outside the Kernel are explicitly classified as:
+//
+//   OBSERVERS (non-authoritative)
+//
+// Observers may:
+//   - read state
+//   - compute projections
+//   - simulate futures
+//   - store historical lineage
+//
+// Observers may NOT:
+//   - mutate kernel state
+//   - block kernel execution
+//   - influence sequence ordering
+//
+// -----------------------------------------------------
+// 6. FAILURE SEMANTICS
+// -----------------------------------------------------
+//
+// Failure is not collapse.
+//
+// Failure is a deterministic state transition:
+//
+//   ACCEPTED  → state evolves
+//   REJECTED  → state persists with encoded rejection lineage
+//
+// Both outcomes advance the system sequence.
+//
+// No execution path is undefined.
+//
+// -----------------------------------------------------
+// 7. TEMPORAL MODEL
+// -----------------------------------------------------
+//
+// Time is not a system input.
+//
+// Time is an observational metric only.
+//
+// The Kernel operates in discrete causal pulses:
+//
+//   Pulse(n) → Pulse(n+1)
+//
+// No wall-clock dependency exists within the Kernel.
+//
+// -----------------------------------------------------
+// 8. WHITEPAPER CONCLUSION
+// -----------------------------------------------------
+//
+// DVSM is not a runtime system.
+//
+// DVSM is a causality-preserving deterministic state machine
+// with strict execution boundaries and observational extensions.
+//
+// The Kernel is the only source of truth.
+//
+// Everything else is a projection.
+//
+// =====================================================
+
+public final class DVSMKernel {
+
+    // AUTHORITATIVE STATE
+    private var state: DVSMBitBlock
+    private var sequence: UInt64 = 0
+
+    // DETERMINISTIC LOCK (single authority gate)
+    private let commitLock = NSLock()
+
+    public init(initialState: DVSMBitBlock) {
+        self.state = initialState
+    }
+
+    // =====================================================
+    // CORE PULSE (THE ONLY REALITY MUTATOR)
+    // =====================================================
+
+    public func pulse(_ input: DVSMFixedVector) -> DVSMCommitResult {
+
+        commitLock.lock()
+        defer { commitLock.unlock() }
+
+        // 1. Propose deterministic next state
+        let candidate = DVSMLaw.propose(
+            current: state,
+            flux: input
+        )
+
+        // 2. Semantic decision (pure, deterministic)
+        let accepted = DVSMKernel.evaluate(state, candidate)
+
+        // 3. Sequence ALWAYS advances (critical invariant)
+        sequence += 1
+
+        if accepted {
+
+            state = candidate
+
+            let hash = DVSMKernel.hash(state, sequence)
+
+            return .committed(hash)
+
+        } else {
+
+            let rejectionState = DVSMKernel.reject(state, sequence)
+
+            let hash = DVSMKernel.hash(rejectionState, sequence)
+
+            return .rejected(hash)
+        }
+    }
+}
