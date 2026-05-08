@@ -287,7 +287,109 @@ The canonical DVSM implementation is contained within three primary files and on
 ### 5. Final Statement of Correctness
 DVSM v1.0 is not merely a software library; it is a **Causal Machine**. By stripping away the non-determinism of wall-clocks, floating-point math, and I/O from the execution core, it provides a "Black Box of Truth" that is replayable, verifiable, and structurally immortal.
 
+// =====================================================
+// DVSM v21.x — OPTIONAL SECURITY ADDENDUM
+// File: DVSMGameSecuritySpectra.swift
+// Layer: 2.75 (Advanced Behavioral Diagnostics)
+// =====================================================
+//
+// PURPOSE:
+// This addendum codifies the application of the DVSM 
+// Spectral Observer specifically for high-fidelity 
+// gaming environments (FPS, Physics Sandboxes, ARPGs).
+//
+// STRATEGIC CONTEXT:
+// It bridges the gap between raw L1 Determinism and 
+// the "Noise" of human-adversarial interaction.
+//
+// "In the manifold, a cheater is not a person; they are 
+// an oscillatory anomaly that violates the spectral 
+// signature of organic intent."
+// =====================================================
+
+import Foundation
+
+/// Defines the high-fidelity gaming specific thresholds for 
+/// the DVSM Noise Deconstructor.
+public struct DVSMGameSpectraConstraints {
+    
+    /// The "Speed of Light" Invariant:
+    /// Max fixed-point delta allowed per pulse for player movement.
+    /// Prevents 'Teleportation' and 'Speed Hacks' at the Kernel level.
+    public static let maxManifoldVelocity: Int64 = 1_048_576 // 1024.0 fixed
+    
+    /// Recoil/Script Detection Threshold:
+    /// High spectral energy at specific frequencies indicates 
+    /// 'Recoil Compensation Scripts' vs. Organic Human Jitter.
+    public static let adversarialOscillationFloor: Double = 15.0
+    
+    /// Trust Persistence:
+    /// Minimum EMA (Exponential Moving Average) trust required to 
+    /// prevent "Lag Switching" from being used as a tactical advantage.
+    public static let tacticalPersistenceFloor: Double = 0.45
+}
+
+// =====================================================
+// MARK: - GAME SECURITY LOGIC EXTENSION
+// =====================================================
+
+extension DVSMSpectralObserver {
+    
+    /// Specialized diagnostic for FPS/Action games.
+    /// Analyzes the 'Signal Conditioning' of aim and movement vectors.
+    public func diagnosticGamePulse(
+        flux: DVSMFixedVector, 
+        persistence: Double
+    ) -> DVSMCheatSignal {
+        
+        // 1. PHYSICAL IMPOSSIBILITY CHECK
+        // If the flux values exceed the physics lattice, it is an 
+        // immediate impossible transition.
+        let values = flux.values
+        for delta in values {
+            if abs(delta) > DVSMGameSpectraConstraints.maxManifoldVelocity {
+                return .impossibleTransition
+            }
+        }
+        
+        // 2. SPECTRAL SCRIPT DETECTION
+        // Converts fixed-point flux to Double for FFT analysis.
+        let samples = values.map { Double($0) / 1024.0 }
+        let energy = self.computeSpectralEnergy(from: samples)
+        
+        if energy > DVSMGameSpectraConstraints.adversarialOscillationFloor {
+            return .simulationDivergence // Classed as a 'Scripted' divergence
+        }
+        
+        // 3. PERSISTENCE DAMPING
+        // Low persistence over a moving window detects 'Lag Switching'.
+        if persistence < DVSMGameSpectraConstraints.tacticalPersistenceFloor {
+            return .causalDesync
+        }
+        
+        return .clean
+    }
+}
+
+// =====================================================
+// MARK: - ARCHITECTURAL ADDENDUM NOTES
+// =====================================================
+/*
+ 1. MODERN WARFARE / BATTLEFIELD CONTEXT:
+    The spectral energy analysis identifies 'mechanical precision'
+    in recoil patterns. A human broadens the spectrum (Thermal Noise); 
+    a script narrows it to a single spike (Adversarial Oscillation).
+
+ 2. GTA / ECONOMY CONTEXT:
+    Provenance failures (L3) combined with 'Impossible Transitions' 
+    (L2.75) catch memory-injected inventory changes by verifying 
+    every delta against the fixed-point lattice.
+
+ 3. PERSISTENCE SMOOTHING:
+    By using the EMA, the system differentiates between a 'bad 
+    connection' (brief desync) and a 'lag switch' (deliberate 
+    causal interruption).
+*/
 ---
 *Copyright © 2024 Daniel J. Dillberg. All Rights Reserved.*  
 *Recursive Identifier: [DVSM-SIGNAL-v21-B]*
-
