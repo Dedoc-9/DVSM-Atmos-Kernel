@@ -429,6 +429,23 @@ Where:
 ## END OF SECTION 12
 
 ---
+        Logical Layer (Rust)
+   --------------------------------
+   - validates inputs
+   - enforces rules
+   - computes state transitions
+   - emits hashes
+
+                ↓
+
+     Physical Layer (C++)
+   --------------------------------
+   - schedules execution
+   - manages concurrency
+   - enforces ordering
+   - isolates hardware effects
+
+---
 
 # 13 FINAL STATEMENT
 
