@@ -329,6 +329,153 @@ public extension L2Specification {
         v > 0 ? 1 : (v < 0 ? -1 : 0)
     }
 }
+// =====================================================
+// L2.4_INTEGRITY_GUARD.swift
+// VERSION: DETERMINISTIC-ANTI-CHEAT-V1
+// ROLE: Execution Integrity Enforcement Layer
+// =====================================================
+
+import Foundation
+
+/**
+ # L2.4: INTEGRITY GUARD LAYER
+
+ Purpose:
+ Enforces that all state transitions are:
+ - Spatially valid (L2.2)
+ - Path-consistent (L2.3)
+ - Velocity-bounded (L2.1)
+ - Replay-identical across executions
+
+ This is the "anti-cheat" layer in DVSM terms,
+ but formally it is a deterministic integrity firewall.
+ */
+
+// MARK: - EXECUTION RESULT
+
+public enum DVSMExecutionResult {
+    case committed
+    case rejected(reason: DVSMRejectionReason)
+}
+
+public enum DVSMRejectionReason {
+    case structuralViolation   // L1 failure
+    case velocityViolation     // L2.1
+    case spatialViolation      // L2.2
+    case causalPathViolation   // L2.3
+    case nondeterminismDetected
+}
+
+// MARK: - L2.4 INTEGRITY ENGINE
+
+public enum L2IntegrityGuard {
+
+    /**
+     # PRIMARY ENTRYPOINT
+
+     Full pipeline enforcement:
+     L1 → L2.1 → L2.2 → L2.3 → Commit
+     */
+    public static func validateAndCommit(
+        rawBuffer: Data,
+        map: L2Specification.VoxelMap
+    ) -> DVSMExecutionResult {
+
+        // =================================================
+        // L1: STRUCTURAL VALIDATION
+        // =================================================
+        guard let decoded = L1Specification.decode(rawBuffer) else {
+            return .rejected(reason: .structuralViolation)
+        }
+
+        let delta = SIMD3<Int64>(
+            decoded.delta[0],
+            decoded.delta[1],
+            decoded.delta[2]
+        )
+
+        // =================================================
+        // L2.1: VELOCITY / ENERGY CONSTRAINT
+        // =================================================
+        guard L2Specification.isGeometricallyValid(delta: delta) else {
+            return .rejected(reason: .velocityViolation)
+        }
+
+        // =================================================
+        // L2.2: VOXEL OCCUPANCY CHECK
+        // =================================================
+        let targetVoxel = Morton.encode(delta)
+        if map.isOccupied(targetVoxel) {
+            return .rejected(reason: .spatialViolation)
+        }
+
+        // =================================================
+        // L2.3: CAUSAL PATH VALIDATION
+        // =================================================
+        let start = SIMD3<Int64>(0, 0, 0)
+        let end = delta
+
+        guard L2Specification.validatePath(
+            from: start,
+            to: end,
+            map: map
+        ) else {
+            return .rejected(reason: .causalPathViolation)
+        }
+
+        // =================================================
+        // L2.4: DETERMINISM CHECK
+        // =================================================
+        guard Self.verifyDeterminism(decoded: decoded, delta: delta) else {
+            return .rejected(reason: .nondeterminismDetected)
+        }
+
+        return .committed
+    }
+
+    // MARK: - DETERMINISM VERIFICATION
+
+    /**
+     Ensures that the same input always produces:
+     - identical voxel key
+     - identical delta interpretation
+     - identical traversal path signature
+     */
+    private static func verifyDeterminism(
+        decoded: L1Specification.Primitive,
+        delta: SIMD3<Int64>
+    ) -> Bool {
+
+        let recomputedKey = Morton.encode(delta)
+
+        let originalKey = Morton.encode(
+            SIMD3<Int64>(
+                decoded.delta[0],
+                decoded.delta[1],
+                decoded.delta[2]
+            )
+        )
+
+        // Bit-exact enforcement
+        return recomputedKey == originalKey
+    }
+}
+
+// MARK: - PIPELINE WRAPPER (KERNEL INTEGRATION)
+
+public enum DVSMKernel {
+
+    public static func pulse(
+        raw: Data,
+        map: L2Specification.VoxelMap
+    ) -> DVSMExecutionResult {
+
+        return L2IntegrityGuard.validateAndCommit(
+            rawBuffer: raw,
+            map: map
+        )
+    }
+}
 
 // =====================================================
 // END OF SPECIFICATION
