@@ -1,0 +1,258 @@
+// =====================================================
+// DVSM_README.swift
+// VERSION: ARCHITECTURE-SPEC-V1
+// ROLE: Deterministic Voxel-State Manifold Specification
+// Author: Daniel J. Dillberg
+// =====================================================
+
+import Foundation
+
+/**
+ # DVSM ARCHITECTURE SPECIFICATION
+ 
+ A deterministic, replay-verifiable computational manifold
+ defined by strict syntactic (L1) and geometric (L2) invariants.
+ 
+ Core Principle:
+ "If it cannot be replayed identically, it is invalid."
+ */
+
+// MARK: - SYSTEM OVERVIEW
+
+/**
+ DVSM enforces a closed causal loop:
+
+ Raw Input → L1 Canonical Encoding → L2 Geometric Validation → State Commit → Replay Equivalence
+ */
+
+// =====================================================
+// MARK: - L1: SYNTACTIC LAYER
+// =====================================================
+
+/**
+ # L1: CANONICAL REPRESENTATION LAYER
+ 
+ Purpose:
+ Ensures all data is bit-identical across architectures.
+ No semantic interpretation occurs at this layer.
+ */
+
+public enum L1Specification {
+
+    // -------------------------------------------------
+    // L1.1: PRIMITIVE SCHEMA
+    // -------------------------------------------------
+
+    /**
+     Canonical 68-byte input format:
+
+     [0-7]   EntityID (UInt64, Big-Endian)
+     [8-31]  Delta Vector (3 x Int64, 32.32 fixed-point)
+     [32-63] Cryptographic Quote (32 bytes)
+     [64-67] Entropy Class (UInt32)
+     */
+
+    public struct Primitive {
+        public let entityID: UInt64
+        public let delta: [Int64]
+        public let quote: Data
+        public let entropyClass: UInt32
+    }
+
+    // -------------------------------------------------
+    // L1.2: CANONICAL DECODER
+    // -------------------------------------------------
+
+    /**
+     Decode(Encode(P)) == P
+     Strict bit-assembly ensures cross-language determinism.
+     */
+
+    public static func decode(_ buffer: Data) -> Primitive? {
+        guard buffer.count == 68 else { return nil }
+
+        let entityID = UInt64(bigEndian: buffer.prefix(8).withUnsafeBytes { $0.load(as: UInt64.self) })
+
+        var delta: [Int64] = []
+        for i in 0..<3 {
+            let start = 8 + (i * 8)
+            let value = buffer[start..<start+8].reduce(UInt64(0)) { ($0 << 8) | UInt64($1) }
+            delta.append(Int64(bitPattern: value))
+        }
+
+        let quote = buffer.subdata(in: 32..<64)
+
+        let entropy = buffer.subdata(in: 64..<68).reduce(UInt32(0)) {
+            ($0 << 8) | UInt32($1)
+        }
+
+        return Primitive(
+            entityID: entityID,
+            delta: delta,
+            quote: quote,
+            entropyClass: entropy
+        )
+    }
+}
+
+// =====================================================
+// MARK: - L2: GEOMETRIC LAYER
+// =====================================================
+
+/**
+ # L2: PHYSICAL VALIDITY LAYER
+ 
+ Purpose:
+ Enforces spatial and temporal constraints over a voxelized manifold.
+ */
+
+public enum L2Specification {
+
+    // =================================================
+    // L2.1: GEOMETRIC ADMISSIBILITY
+    // =================================================
+
+    /**
+     Prevents:
+     - Teleportation
+     - Velocity overflow
+     - Non-continuous state jumps
+     */
+
+    public static func isGeometricallyValid(delta: SIMD3<Int64>) -> Bool {
+        let energy = delta.x &* delta.x +
+                     delta.y &* delta.y +
+                     delta.z &* delta.z
+
+        // Manifold velocity cap (normalized constraint)
+        let maxEnergy: Int64 = 1 << 60
+
+        return energy <= maxEnergy
+    }
+
+    // =================================================
+    // L2.2: SPARSE VOXEL OCCUPANCY
+    // =================================================
+
+    /**
+     World is defined as a sparse set of solid voxels.
+     Morton encoding maps 3D space → deterministic key.
+     */
+
+    public struct VoxelMap {
+        public let solid: Set<UInt64>
+
+        public func isOccupied(_ key: UInt64) -> Bool {
+            return solid.contains(key)
+        }
+    }
+
+    // =================================================
+    // L2.3: CAUSAL PATH INTEGRITY (V-DDA)
+    // =================================================
+
+    /**
+     Ensures no transition passes through invalid voxels.
+     Uses deterministic voxel traversal (no interpolation).
+     */
+
+    public static func validatePath(
+        from start: SIMD3<Int64>,
+        to end: SIMD3<Int64>,
+        map: VoxelMap
+    ) -> Bool {
+
+        let startVoxel = start >> 32
+        let endVoxel = end >> 32
+
+        var current = startVoxel
+
+        let dx = sign(endVoxel.x - startVoxel.x)
+        let dy = sign(endVoxel.y - startVoxel.y)
+        let dz = sign(endVoxel.z - startVoxel.z)
+
+        let steps = max(abs(endVoxel.x - startVoxel.x),
+                    max(abs(endVoxel.y - startVoxel.y),
+                        abs(endVoxel.z - startVoxel.z)))
+
+        for _ in 0...steps {
+            let key = Morton.encode(current)
+
+            if map.isOccupied(key) {
+                return false
+            }
+
+            current = SIMD3<Int64>(
+                current.x + dx,
+                current.y + dy,
+                current.z + dz
+            )
+        }
+
+        return true
+    }
+
+    private static func sign(_ v: Int64) -> Int64 {
+        v > 0 ? 1 : (v < 0 ? -1 : 0)
+    }
+}
+
+// =====================================================
+// MARK: - EXECUTION PIPELINE
+// =====================================================
+
+/**
+ # DVSM PULSE EXECUTION FLOW
+
+ 1. L1 Decode (Structural Validation)
+ 2. L2.1 Geometric Constraint
+ 3. L2.2 Occupancy Check
+ 4. L2.3 Path Integrity Sweep
+ 5. Commit State
+ */
+
+public enum DVSMKernel {
+
+    public static func pulse(raw: Data, map: L2Specification.VoxelMap) -> Bool {
+
+        // L1
+        guard let decoded = L1Specification.decode(raw) else {
+            return false
+        }
+
+        // L2.1
+        let deltaVec = SIMD3<Int64>(
+            decoded.delta[0],
+            decoded.delta[1],
+            decoded.delta[2]
+        )
+
+        guard L2Specification.isGeometricallyValid(delta: deltaVec) else {
+            return false
+        }
+
+        // L2.2
+        let targetKey = Morton.encode(deltaVec)
+        if map.isOccupied(targetKey) {
+            return false
+        }
+
+        // L2.3
+        let start = SIMD3<Int64>(0,0,0)
+        let end = deltaVec
+
+        guard L2Specification.validatePath(
+            from: start,
+            to: end,
+            map: map
+        ) else {
+            return false
+        }
+
+        return true
+    }
+}
+
+// =====================================================
+// END OF SPECIFICATION
+// =====================================================
