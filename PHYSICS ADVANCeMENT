@@ -1023,3 +1023,180 @@ public extension DVSMConsensusKernel {
  - L10 failure → untrusted or non-verifiable execution substrate
  - L1 failure → nondeterministic or divergent computation result
 */
+/**
+ # L10 CONTINUOUS ATTACK SURFACE MODEL (REFINED)
+
+ L10 is no longer a binary attestation gate.
+
+ Instead, it is a continuously evaluated risk function over the substrate,
+ measuring drift in hardware trust, environmental stability, and execution fidelity.
+
+ CORE IDEA:
+ Trust is not "true/false" — it is a bounded, time-evolving confidence score.
+ */
+
+public struct L10SubstrateState {
+    public let timestamp: UInt64
+
+    /// Hardware attestation signature (TEE / TPM / secure enclave equivalent)
+    public let attestationScore: Double
+
+    /// Measured deviation in sensor / physical execution stability
+    public let thermalDrift: Double
+
+    /// Observed variance in timing / execution determinism
+    public let executionJitter: Double
+
+    /// Derived trust level (0.0 = untrusted, 1.0 = fully stable)
+    public let trustScore: Double
+}
+
+public final class L10ContinuousMonitor {
+
+    /**
+     Computes real-time substrate trust as a continuous function.
+     No binary pass/fail — only degradation gradients.
+     */
+    public func evaluate(state: L10SubstrateState) -> Double {
+
+        // Weighted degradation model (simplified risk surface)
+        let instability =
+            (1.0 - state.attestationScore) * 0.5 +
+            state.thermalDrift * 0.3 +
+            state.executionJitter * 0.2
+
+        // Convert instability into trust score
+        let trust = max(0.0, 1.0 - instability)
+
+        return trust
+    }
+
+    /**
+     System is considered "safe to execute L1 transitions" only
+     if trust remains above dynamic threshold.
+     */
+    public func isWithinSafeEnvelope(_ state: L10SubstrateState,
+                                     threshold: Double = 0.75) -> Bool {
+        return evaluate(state: state) >= threshold
+    }
+}
+// =====================================================
+// L0_GENESIS_BOOTSTRAP.swift
+// VERSION: GENESIS-ANCHOR-V1.1 (REFINED)
+// STATUS: BOOTSTRAP INVARIANTS LOCKED
+// =====================================================
+
+import Foundation
+
+/**
+ # L0: GENESIS BOOTSTRAP
+ The absolute "Point Zero" of the manifold.
+ All L10 Continuous Monitoring and L1 State Evolution are 
+ measured relative to these constants.
+ */
+
+public struct DVSMGenesisAnchor {
+    
+    // MARK: - L1 STATE SEED
+    /// The original salt used to initialize the State Hash chain.
+    public static let l1InitialSeed: Data = "AXIOM_GENESIS_PULSE_0".data(using: .utf8)!
+    
+    // MARK: - L10 CALIBRATION BASELINE
+    /// The physical ε_c (Epsilon Critical) for a pristine substrate.
+    public static let epsilonCalibrationBaseline: Double = 0.0854
+    
+    /// Initial trust required for manifold ignition.
+    public static let ignitionTrustThreshold: Double = 0.95
+    
+    // MARK: - L4 PHYSICAL ASSUMPTIONS
+    public static let endianness: String = "Big-Endian"
+    public static let fixedPointScaling: Int64 = 1 << 32 // 32.32
+}
+
+public struct DVSMGenesisState {
+    
+    /// Pre-attestation placeholder (no substrate measurement yet possible).
+    /// This is a null-state marker indicating the system has not yet 
+    /// performed its first L10 Hardware Handshake.
+    public static let initialAttestationState: Data = Data(repeating: 0x00, count: 32)
+    
+    /// Sequence 0: The First Valid Header
+    public static func create() -> DVSMStateHeader {
+        return DVSMStateHeader(
+            sequence: 0,
+            stateHash: SHA256.hash(data: DVSMGenesisAnchor.l1InitialSeed).data,
+            faultStatus: .clean,
+            morphismSeed: 0xCAFE_BABE_DEAD_BEEF, // Canonical Morphism Start
+            attestationHash: DVSMGenesisState.initialAttestationState
+        )
+L0  → genesis / initialization anchor
+L1  → deterministic state evolution
+L10 → continuous trust measurement layer
+    }
+}
+// =====================================================
+// L0.1_GENESIS_RECONCILIATION.swift
+// VERSION: L0.1-CONSENSUS-V3 (DETERMINISTIC-MAJORITY)
+// =====================================================
+
+import Foundation
+
+/**
+ # L0.1: GENESIS RECONCILIATION (MAJORITY RULE)
+ 
+ A node may only proceed to L1 ignition if:
+ - A strict majority fingerprint exists
+ - The local fingerprint matches that majority class
+ - Consensus is deterministic (no tie ambiguity allowed)
+ */
+
+public struct DVSML0Fingerprint: Hashable, Equatable {
+    public let genesisHash: Data
+    public let substrateAxioms: Data
+}
+
+public final class DVSMGenesisReconciler {
+    
+    private var observedFingerprints: [UUID: DVSML0Fingerprint] = [:]
+    
+    /// Record network observations
+    public func observe(nodeID: UUID, fingerprint: DVSML0Fingerprint) {
+        observedFingerprints[nodeID] = fingerprint
+    }
+    
+    /**
+     # DETERMINISTIC MAJORITY CONSENSUS
+     Returns true iff local fingerprint matches strict majority cluster.
+     */
+    public func isConsensusValid(localFingerprint: DVSML0Fingerprint) -> Bool {
+        
+        let all = Array(observedFingerprints.values) + [localFingerprint]
+        
+        // Group identical fingerprints
+        let grouped = Dictionary(grouping: all, by: { $0 })
+        
+        // Find (fingerprint, count) pairs
+        let counted = grouped.map { (key, value) in
+            (fingerprint: key, count: value.count)
+        }
+        
+        // Deterministic tie-break: highest count, then lexicographic hash
+        let sorted = counted.sorted { a, b in
+            if a.count == b.count {
+                return a.fingerprint.genesisHash.lexicographicallyPrecedes(
+                    b.fingerprint.genesisHash
+                )
+            }
+            return a.count > b.count
+        }
+        
+        guard let majority = sorted.first else {
+            return false
+        }
+        
+        let hasStrictMajority = majority.count > all.count / 2
+        let localAligned = (localFingerprint == majority.fingerprint)
+        
+        return hasStrictMajority && localAligned
+    }
+}
