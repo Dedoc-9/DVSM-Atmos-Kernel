@@ -1,0 +1,184 @@
+// =====================================================
+// DVSM_POCR_FINAL_SPEC.swift
+// VERSION: POCR-L2.8-FINAL-PATCH (Refined)
+// STATUS: CLOSED_SYSTEM_SPECIFICATION
+// CLASSIFICATION: Closed deterministic reachability-constrained event-sourced state machine
+// Author: Daniel J Dilberg
+// =====================================================
+
+import Foundation
+
+/**
+ # FORMAL INVARIANT
+ "A transition T is committed iff T ∈ Reach(PSM, C, L, E), where Reach is a 
+ deterministic, stateless, bounded-rational geometric operator over a 
+ locally projected partial observability manifold."
+ 
+ # L6 REPLAY GUARANTEE
+ Fault states are encoded as deterministic extensions of the state hash chain.
+ Identical input sequences produce identical fault histories across all nodes,
+ preserving distributed symmetry under both valid and invalid transitions.
+ */
+
+// MARK: - L1 & L6: DETERMINISTIC STATE TRACE
+
+public struct DVSMStateHeader {
+    public let sequence: UInt64
+    public let stateHash: Data
+    
+    /// L6: Encoded failure event (Prevents exception-based divergence)
+    /// Failure is an event-sourced encoded state, not a runtime exception.
+    public let faultStatus: DVSMIntegritySignal 
+}
+
+public enum DVSMIntegritySignal: UInt8 {
+    case clean = 0
+    case causalOrphan = 1       // T ∉ Reach(PSM)
+    case manifoldViolation = 2  // Structural Integrity Breach
+}
+
+// MARK: - L2 & L2.8: THE POCR PIPELINE
+
+public final class DVSMIntegrityManifold {
+    
+    /**
+     L2: DETERMINISTIC PSM PROJECTION
+     Pure Function: (L1, visibility, agentID) -> PSM
+     - Replay-equivalent across all nodes.
+     - Deterministic extraction constrained by agent identity.
+     - No heuristics or randomness present.
+     */
+    public func projectPSM(globalState: DVSMStateHeader, agentID: Int) -> PSMManifold {
+        return DVSMProjectionSolver.extract(globalState, for: agentID)
+    }
+
+    /**
+     L2.8: THE REACH OPERATOR (Stateless Geometric Solver)
+     Signature: Reach(PSM, C, L, E) -> Set<Transition>
+     - Bounded by C (kinematics), L (latency), and E (entropy).
+     - Stateless, non-probabilistic, and replay-equivalent.
+     - Mathematical role: Bounded action space generator.
+     */
+    public func computeReachableSet(psm: PSMManifold) -> Set<DVSMTransition> {
+        return DVSMGeometricSolver.solve(
+            manifold: psm,
+            constraints: DVSMPOCRConstraints.default
+        )
+    }
+}
+
+// MARK: - L3 & L5: EXECUTION & REPLAY SYMMETRY
+
+public final class DVSMCompetitiveArena {
+    private var currentState: DVSMStateHeader
+    private let manifold = DVSMIntegrityManifold()
+
+    /**
+     PIPELINE: DETERMINISTIC STATE EVOLUTION
+     1. L1 global state -> L2 PSM projection.
+     2. PSM -> Reachable Set via stateless solver (C, L, E).
+     3. T validated via strict set-membership predicate.
+     4. COMMIT: If T ∈ Reach(PSM), evolve L1 state normally.
+     5. ENCODE: If T ∉ Reach(PSM), evolve L1 to deterministic fault state (L6).
+     */
+    public func pulse(input: DVSMTransition, agentID: Int) {
+        
+        // Step 1 & 2: Manifold Generation
+        let psm = manifold.projectPSM(globalState: currentState, agentID: agentID)
+        let reachableSet = manifold.computeReachableSet(psm: psm)
+        
+        // Step 3: POCR RULE (Geometric Constraint Evaluation)
+        if reachableSet.contains(input) {
+            // VALID PATH
+            self.commit(input)
+        } else {
+            // Step 5: L6 DETERMINISTIC ENCODING
+            // Failure is a first-class event in the state transition graph.
+            // All nodes converge to identical state traces including fault events.
+            self.fault(reason: .causalOrphan)
+        }
+    }
+
+    private func commit(_ t: DVSMTransition) {
+        // Standard deterministic state evolution
+        self.currentState = DVSMKernel.evolve(currentState, with: t)
+    }
+
+    private func fault(reason: DVSMIntegritySignal) {
+        // L6: Deterministic evolution of the hash chain under fault conditions.
+        // Preserves L5 distributed consistency by removing divergence risk.
+        self.currentState = DVSMKernel.injectFault(currentState, reason: reason)
+    }
+}
+
+// MARK: - SYSTEM PROPERTIES CHECKLIST
+/*
+ - Determinism: TRUE
+ - Replay Equivalence: TRUE (L5)
+ - Heuristics: NONE
+ - Runtime Exceptions: NONE (Replaced by L6 Encoded State)
+ - Failure Model: Event-Sourced Encoded State
+*/
+// MARK: - FORMAL SEMANTICS & CAUSAL CLOSURE
+
+/**
+ # POCR VALIDITY PREDICATE
+ 
+ T is valid iff T ∈ Reach(PSM, C, L, E)
+ 
+ WHERE:
+ - Reach: A deterministic, stateless set-generation operator with zero stochastic or heuristic components.
+ - PSM:   The agent-local deterministic projection of global state at Sequence(n).
+ - {C,L,E}: Universal kinematic, temporal, and entropy constants.
+ 
+ # ARCHITECTURAL NOTES
+ 
+ 1. NOETIC ISOLATION: The validation logic possesses zero "knowledge" of player intent or identity beyond 
+    the geometric constraints of the manifold.
+ 
+ 2. CAUSAL ORPHANING: Any transition T ∉ Reach(PSM) is classified as a 'Causal Orphan.' This is not a 
+    subjective judgment of "cheating," but a formal proof of non-computability within the agent's 
+    current information horizon.
+ 
+ 3. ENCODED FINALITY (L6): By transforming reachability failure into a deterministic state-hash event, 
+    the system ensures that "Reality Fractures" are synchronized across all nodes. Symmetry is 
+    maintained even when the manifold is breached.
+ */
+// MARK: - DVSM TYPE CONTRACT & CLOSURE INVARIANTS
+
+/**
+ # 1. DETERMINISTIC EQUALITY SEMANTICS
+ DVSMTransition equality is defined strictly by structural hash equivalence.
+ Comparison is bit-identical; no behavioral or reference-based equality is permitted.
+ This ensures set membership is implementation-independent across all substrates.
+ 
+ # 2. PURE FUNCTIONAL REACHABILITY
+ The Reach operator is an injective, pure function over (PSM, C, L, E).
+ - Zero Path-Dependence: Identical PSM inputs yield identical Reachable Sets.
+ - No Hidden Temporal State: The operator retains no memory across pulses.
+ - Directionality: Reachability is a stateless projection of the manifold's current geometry.
+ 
+ # 3. CANONICAL FAULT EVOLUTION (L6)
+ `injectFault(state, reason) -> next_state`
+ - Non-Branching: Faults do not create forks or history mutations.
+ - Single Canonical Continuation: A fault is a first-class, forward-moving state transition.
+ - No Rollback: DVSM does not revert state; it evolves into a "Faulted Truth" to maintain 
+   the integrity of the sequence.
+ 
+ # 4. STRUCTURAL INDISTINGUISHABILITY
+ Failure states (L6) are indistinguishable in structure from valid states (L1) except 
+ for their semantic classification. 
+ - All L6 events are embedded directly in the L1 hash chain.
+ - This preserves the "Closed Manifold" assumption; the fault is a part of reality, 
+   not metadata attached to it.
+ */
+
+// MARK: - FINAL POCR PREDICATE
+
+/**
+ T is valid iff T ∈ Reach(PSM, C, L, E)
+ 
+ WHERE:
+ - Reach: A deterministic, stateless, pure-functional set-generation operator 
+          with zero stochastic or heuristic components.
+ */
