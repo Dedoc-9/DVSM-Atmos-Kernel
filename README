@@ -210,62 +210,192 @@ Result includes:
 IMPORTANT:
 This does NOT affect kernel state.
 // =====================================================
-// 🌐 DISTRIBUTED BEHAVIOR
+// DVSM v∞ — ATOMOS REFINED SPECIFICATION (README2 ADDENDUM)
+// DISTRIBUTED BEHAVIOR + SYSTEM CONSTRAINTS + FINAL RESOLUTION
 // =====================================================
 //
-// Across multiple nodes:
-//
-// - Each node runs identical kernel logic
-// - State equivalence is validated via Merkle roots
-// - Divergence is treated as invalid system behavior
-//
-// DVSM does NOT rely on consensus.
-// It relies on deterministic replay equivalence.
-//
+// STATUS: Canonical Architecture Extension (Post-Binding Revision)
+// PURPOSE: Formalize distributed execution semantics and invariants
 // =====================================================
-// ⚠️ DESIGN CONSTRAINTS
+
+import Foundation
+
 // =====================================================
-//
-// The following are strictly forbidden inside L1:
-//
-// - Floating-time dependency
-// - IO operations
-// - Async mutation
-// - Non-deterministic math
-// - Observer feedback loops
-//
-// Observers MUST NEVER:
-// - modify flux
-// - influence kernel execution
-// - affect sequence ordering
-//
+// 🌐 DISTRIBUTED BEHAVIOR (L5 — CAUSAL EQUIVALENCE LAYER)
 // =====================================================
-// 🚀 USE CASES
+
+/*
+ Across multiple nodes:
+
+ - Each node executes identical L1 kernel logic
+   over identical DVSMValidatedIntent inputs.
+ - State agreement is defined exclusively by
+   Merkle-root equivalence of committed outputs.
+ - Any divergence under identical validated input
+   is treated as a causal invalidity.
+
+ DVSM explicitly rejects consensus systems:
+
+    "DVSM does not resolve disagreement — it prevents it from being valid."
+
+ The system operates on:
+
+ - Deterministic replay equivalence
+ - Structural state identity under causal replay
+ - Convergence by law, not negotiation
+*/
+
+public enum DVSMDistributedBehaviorModel {
+
+    /// Nodes must converge under identical validated input.
+    case deterministicReplayEquivalence
+
+    /// State identity is defined by cryptographic commit hashes.
+    case merkleRootStateIdentity
+
+    /// Divergence is invalid system behavior (not a resolved conflict).
+    case causalViolationOnDivergence
+}
+
 // =====================================================
-//
-// DVSM is applicable to:
-//
-// - High-integrity distributed systems
-// - Aerospace sensor fusion
-// - Financial settlement engines
-// - Swarm robotics coordination
-// - Deterministic simulation engines
-//
+// ⚠️ DESIGN CONSTRAINTS (L1 KERNEL INVARIANTS)
 // =====================================================
-// 🧭 DESIGN PHILOSOPHY
+
+/*
+ The following are strictly impossible within L1:
+
+ - Any wall-clock or floating-time dependency
+ - Any IO operation (direct or indirect)
+ - Any asynchronous mutation affecting kernel state
+ - Any non-deterministic computation source
+ - Any observer feedback loop influencing execution
+
+ OBSERVER ISOLATION RULE:
+
+ - L2 / L2.5 MUST NOT modify flux
+ - L2 / L2.5 MUST NOT influence execution path
+ - L2 / L2.5 MUST NOT affect sequence ordering
+
+ Interpretation is strictly downstream of truth.
+*/
+
+public struct DVSMKernelConstraints {
+
+    public static let noTimeDependency: Bool = true
+    public static let noIOInKernel: Bool = true
+    public static let noAsyncMutation: Bool = true
+    public static let noNonDeterminism: Bool = true
+    public static let observerNonInterference: Bool = true
+}
+
 // =====================================================
-//
-// DVSM is built on one principle:
-//
-//     "If two systems see the same input, they must become
-//      the same system state — regardless of hardware."
-//
-// Everything else is enforcement.
-//
+// 🚀 USE CASE DOMAINS (DETERMINISTIC SYSTEM CLASS)
 // =====================================================
-# Addendum: DVSM v1.0.0-canonical Release Notes
-**Document ID:** DVSM-REL-2024-v1.0  
-**Architectural Status:** Hardened Specification  
+
+/*
+ DVSM is applicable only to systems requiring:
+
+ - Bit-reproducible execution across heterogeneous hardware
+ - Strict causal determinism under identical input
+
+ Valid domains include:
+
+ - Aerospace-grade sensor fusion systems
+ - Financial clearing and settlement engines
+ - Swarm robotics coordination systems
+ - Deterministic physics simulation engines
+ - High-assurance audit and verification systems
+
+ Constraint:
+
+ DVSM applies only where identical input MUST produce identical state.
+*/
+
+public enum DVSMUseCases {
+
+    case aerospaceSensorFusion
+    case financialSettlementSystems
+    case swarmRobotics
+    case deterministicSimulation
+    case forensicVerificationSystems
+}
+
+// =====================================================
+// 🧭 DESIGN PHILOSOPHY (CAUSAL AXIOM)
+// =====================================================
+
+/*
+ Core system axiom:
+
+    "If two systems receive the same validated input,
+     they must converge to the same state regardless of hardware."
+
+ Implications:
+
+ - Hardware is non-semantic
+ - Time is a sequencing artifact, not a causal variable
+ - Only validated causal structure defines system evolution
+*/
+
+public struct DVSMCausalAxiom {
+
+    public static let deterministicConvergence: Bool = true
+    public static let hardwareIrrelevance: Bool = true
+    public static let timeIsNonCausal: Bool = true
+}
+
+// =====================================================
+// 📦 FINAL ARCHITECTURAL RESOLUTION
+// =====================================================
+
+/*
+ DVSM v1.0 (Atomos) is formally defined as:
+
+ A causally-closed deterministic execution system with
+ physically bound substrate enforcement and cross-layer invariants.
+
+ Layer responsibilities:
+
+ - L1: Kernel (Truth Engine — deterministic state transitions)
+ - L2: Observer (Interpretation — non-authoritative projection)
+ - L2.5: Spectral Observer (Diagnostics — no causal influence)
+ - L3: Provenance Compiler (Trust gate — validation + normalization)
+ - L4: Node Runtime (Physical execution substrate)
+ - L5: Consistency Layer (Distributed replay equivalence)
+ - L6: Axiomatic Layer (Impossibility constraints)
+
+*/
+
+public enum DVSMSystemResolution {
+
+    case causallyClosedSystem
+    case deterministicExecutionManifold
+    case abiBoundPhysicalInstantiation
+}
+
+// =====================================================
+// 🧾 CLOSING STATEMENT (SYSTEM FIXED POINT)
+// =====================================================
+
+/*
+ DVSM v1.0 Atomos is now:
+
+ - Logically closed (no undefined transitions)
+ - Physically grounded (execution substrate bound)
+ - Causally constrained (no invalid input paths)
+ - Distributedly consistent (replay-equivalent)
+
+ Final property:
+
+    Determinism enforced as a causal law across all substrates.
+*/
+
+public struct DVSMFinalStatement {
+
+    public static let systemIsCausallyClosed: Bool = true
+    public static let systemIsDeterministicAcrossHardware: Bool = true
+    public static let systemIsReplayEquivalent: Bool = true
+}
 
 ---
 
