@@ -628,6 +628,120 @@ extension DVSMSpectralObserver {
 //  within the deterministic manifold."
 //
 // =====================================================
+// =====================================================
+// L2.7 & L2.8 — DVSM INTEGRITY MANIFOLD (UNIFIED)
+// Causal Derivability & Bounded Rationality Solver
+// =====================================================
+//
+// AXIOM: A transition T is valid IF AND ONLY IF it is 
+// reachable within the Bounded Optimal Policy (BOP) 
+// derived from the agent's Partial State Manifold (PSM).
+// =====================================================
+
+public struct DVSMIntegrityManifold {
+
+    /// L2.7: KINEMATIC & SPECTRAL BOUNDS (MOTOR)
+    public static let maxManifoldVelocity: Int64 = 1_048_576 // 1024.0 fixed
+    public static let adversarialOscillationFloor: Double = 15.0
+    public static let reactionVarianceFloor: Double = 0.18
+
+    /// L2.8: INFERENCE & CAUSALITY BOUNDS (SENSORY)
+    /// Actions must correlate to PSM within this distance.
+    /// Values > 1.0 indicate Causal Orphaning (Information Leak).
+    public static let inferenceDistanceCeiling: Double = 0.85
+    
+    /// Cognitive Reaction Floor (ms).
+    /// Prevents 'Pre-Cognitive' transitions from occluded states.
+    public static let cognitiveLatencyFloor: Int64 = 120 
+}
+
+// =====================================================
+// MARK: - L3 TRUST GATE / ABI CONTRACT (RUST AUTHORITY)
+// =====================================================
+
+#[repr(C)]
+pub struct DVSMCausalReport {
+    pub sequence_id: u64,
+    pub state_hash: [u8; 32],
+    
+    // The "Gap" between action and PSM-reachable space
+    pub inference_divergence: f64, 
+    pub is_causal_orphan: bool,
+    
+    // Result bitmask for L3 enforcement
+    pub integrity_signal: u8, 
+}
+
+/*
+ * ARCHITECTURAL FINALITY:
+ * 1. L1 Kernel defines the Global Truth.
+ * 2. L2 Projects a Deterministic PSM to the agent.
+ * 3. L2.8 Solves for Reachable Action Space based on that PSM.
+ * 4. L3 Rejects any T ∉ Reachable(PSM, BOP).
+ *
+ * RESULT: A "Wallhack" or "Aimbot" is not a violation of 
+ * rules, but a mathematical impossibility—a state transition 
+ * that has no valid derivation path in the provided manifold.
+ */
+BOP(PSM) = argmax over A ∈ ActionSpace:
+
+    U(A | PSM)
+subject to:
+    entropy(A) ≤ H_max
+    latency(A) ≥ L_min
+    visibility_constraints(A, PSM)
+T is valid ⇔ T ∈ BOP(PSM)
+
+Stripping DVSM language away, you now have:
+
+A deterministic event-sourced system with:
+-partial observability constraints
+-bounded rational agent modeling
+-reachability-based validity filtering
+-cryptographic state transitions
+
+// =====================================================
+// L2.8 — POCR (PARTIAL-OBSERVABILITY CONSTRAINED REACHABILITY)
+// FINAL CLOSURE SPECIFICATION
+// =====================================================
+// 
+// AXIOM: A transition T is valid if and only if T exists 
+// within the Deterministic Reachable Set of the agent's 
+// Partial State Manifold (PSM).
+// =====================================================
+
+public struct DVSMPOCRConstraints {
+    // [C] Kinematic Boundary (Vector Magnitude)
+    public static let k_bound: Int64 = 1_048_576 
+    
+    // [L] Information Latency (Temporal Causality)
+    public static let l_bound_ms: Int64 = 120
+    
+    // [E] Stochastic Entropy (Precision Floor)
+    public static let e_bound: Double = 0.45
+}
+
+// -----------------------------------------------------
+// THE REACH OPERATOR (DETERMINISTIC)
+// -----------------------------------------------------
+// Reach is a deterministic, replay-equivalent function:
+// f(PSM, {C, L, E}) -> { Reachable Set }
+//
+// This operator MUST yield identical results across all 
+// DVSM nodes to maintain L5 Replay Equivalence.
+// -----------------------------------------------------
+
+extension DVSMTrustGate {
+    public func validateTransition(T: Transition, PSM: Manifold) -> Bool {
+        let reachableSet = DVSMInferenceSolver.compute(PSM, DVSMPOCRConstraints.self)
+        
+        guard reachableSet.contains(T) else {
+            // T is a Causal Orphan (Unreachable State)
+            return false 
+        }
+        return true
+    }
+}
 
 // =====================================================
 // MARK: - ARCHITECTURAL ADDENDUM NOTES
