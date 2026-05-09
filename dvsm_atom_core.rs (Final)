@@ -3723,6 +3723,16 @@ public enum DVSMAdversarialDetector {
     }
 }
 
+RIIL → structural validation
+   ↓
+Adversarial Detector (this layer)
+   ↓
+F (state evolution)
+   ↓
+H (replay sealing)
+   ↓
+Ω (rule adaptation, optional)
+
 // =====================================================
 // FINAL STATEMENT (SYSTEM SEAL)
 // =====================================================
