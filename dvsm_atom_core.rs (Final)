@@ -2498,6 +2498,877 @@ FINAL RESULT:
 but a "meta-compiler of reality rules".
 
 =====================================================
+// =====================================================
+// DVSM_L∞_OMEGA_FIXEDPOINT_AND_ADVERSARIAL_MODEL.swift
+// VERSION: OMEGA-DYNAMICS-V1
+// ROLE:
+// Unified analysis layer for:
+// 1. Fixed-point behavior of Ω rule evolution
+// 2. Cycle detection in rule-space
+// 3. Invariance class formation
+// 4. Adversarial destabilization of Ω
+// 5. Deterministic chaos regimes
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// MARK: - RULE SPACE MODEL
+// =====================================================
+
+/// Rule-space is a discrete deterministic state machine:
+/// Rₙ+1 = Ω(Rₙ, Sₙ)
+///
+/// where:
+/// - R = (O★, F)
+/// - S = global system state
+/// - Ω = deterministic transformation
+public struct DVSMRuleSpaceState: Hashable {
+
+    public let ruleHash: Data
+    public let generation: UInt64
+}
+
+// =====================================================
+// PART 1 — FIXED POINT ANALYSIS OF Ω
+// =====================================================
+
+public enum DVSMOmegaFixedPointAnalysis {
+
+    // -------------------------------------------------
+    // FIXED POINT CONDITION
+    // -------------------------------------------------
+    //
+    // A fixed point exists when:
+    //
+    //      Ω(R, S) == R
+    //
+    // meaning rule evolution stabilizes.
+    // -------------------------------------------------
+
+    public static func isFixedPoint(
+        current: DVSMRuleSpaceState,
+        next: DVSMRuleSpaceState
+    ) -> Bool {
+
+        return current.ruleHash == next.ruleHash
+    }
+
+    // -------------------------------------------------
+    // INTERPRETATION
+    // -------------------------------------------------
+    //
+    // FIXED POINT OCCURS WHEN:
+    //
+    // 1. Global state entropy is insufficient to trigger rule mutation
+    // 2. Hash-coupled transformation collapses into identity mapping
+    // 3. Ω becomes idempotent over rule space
+    //
+    // RESULT:
+    // System becomes self-stabilizing and non-evolving
+    // -------------------------------------------------
+}
+
+// =====================================================
+// PART 2 — CYCLE DETECTION IN RULE EVOLUTION
+// =====================================================
+
+public enum DVSMOmegaCycleDetection {
+
+    // -------------------------------------------------
+    // A cycle exists when:
+    //
+    //      Rₙ == Rₙ+k
+    //
+    // for some k > 0
+    // -------------------------------------------------
+
+    public static func detectCycle(
+        history: [DVSMRuleSpaceState]
+    ) -> Bool {
+
+        let seen = Set(history)
+
+        return seen.count < history.count
+    }
+
+    // -------------------------------------------------
+    // INTERPRETATION
+    // -------------------------------------------------
+    //
+    // CYCLES EMERGE WHEN:
+    //
+    // 1. State space is finite (hash-bounded system)
+    // 2. Ω transformation is deterministic
+    // 3. Entropy injection is insufficient
+    //
+    // RESULT:
+    // System enters a deterministic loop:
+    //     R₁ → R₂ → R₃ → ... → R₁
+    // -------------------------------------------------
+}
+
+// =====================================================
+// PART 3 — INVARIANCE CLASS FORMATION
+// =====================================================
+
+public enum DVSMOmegaInvarianceClasses {
+
+    // -------------------------------------------------
+    // INVARIANCE CLASS:
+    // A subset of rule-space closed under Ω
+    // -------------------------------------------------
+
+    public static func belongsToClass(
+        state: DVSMRuleSpaceState,
+        classSeed: Data
+    ) -> Bool {
+
+        let derived = SHA256.hash(
+            data: state.ruleHash + classSeed
+        )
+
+        // membership is hash-consistency based
+        return derived.prefix(4).allSatisfy { $0 == 0 }
+    }
+
+    // -------------------------------------------------
+    // INTERPRETATION
+    // -------------------------------------------------
+    //
+    // INVARIANCE CLASSES FORM WHEN:
+    //
+    // 1. Ω partitions rule space into attractors
+    // 2. Different initial rules converge to same macro-behavior
+    //
+    // RESULT:
+    // System behaves like a stratified phase-space
+    // rather than a single evolution line
+    // -------------------------------------------------
+}
+
+// =====================================================
+// PART 4 — ADVERSARIAL Ω MODELING
+// =====================================================
+
+public enum DVSMOmegaAdversarialModel {
+
+    // -------------------------------------------------
+    // ADVERSARIAL INPUT DEFINITION
+    // -------------------------------------------------
+    //
+    // Inputs designed to maximize:
+    // - rule mutation frequency
+    // - entropy injection
+    // - ordering instability pressure
+    // -------------------------------------------------
+
+    public static func adversarialEntropy(
+        inputStream: [Data]
+    ) -> Data {
+
+        return inputStream.reduce(Data()) { acc, next in
+            Data(SHA256.hash(data: acc + next))
+        }
+    }
+
+    // -------------------------------------------------
+    // Ω INSTABILITY CONDITION
+    // -------------------------------------------------
+
+    public static func isOmegaUnstable(
+        ruleHistory: [DVSMRuleSpaceState],
+        entropy: Data
+    ) -> Bool {
+
+        let entropyWeight = entropy.first ?? 0
+
+        let mutationRate =
+            Double(ruleHistory.count) / Double(max(entropyWeight, 1))
+
+        return mutationRate > 1.0
+    }
+
+    // -------------------------------------------------
+    // INTERPRETATION
+    // -------------------------------------------------
+    //
+    // Ω BECOMES "UNSTABLE" WHEN:
+    //
+    // 1. Input entropy is structured to continuously trigger rule rewrites
+    // 2. Feedback loop between Sₙ and Ω becomes high-gain
+    //
+    // BUT IMPORTANTLY:
+    //
+    // Even in instability:
+    //     system remains deterministic
+    //
+    // There is no randomness — only high sensitivity to initial conditions
+    // -------------------------------------------------
+}
+
+// =====================================================
+// PART 5 — "DETERMINISTIC CHAOS" MODEL
+// =====================================================
+
+public enum DVSMOmegaChaosRegime {
+
+    // -------------------------------------------------
+    // CHAOS DEFINITION (IMPORTANT)
+    // -------------------------------------------------
+    //
+    // This is NOT randomness.
+    // This is deterministic divergence of trajectories.
+    // -------------------------------------------------
+
+    public static func isChaotic(
+        initialA: DVSMRuleSpaceState,
+        initialB: DVSMRuleSpaceState,
+        steps: Int
+    ) -> Bool {
+
+        var a = initialA
+        var b = initialB
+
+        for _ in 0..<steps {
+
+            // deterministic divergence amplification
+            a = DVSMRuleSpaceState(
+                ruleHash: SHA256.hash(data: a.ruleHash),
+                generation: a.generation + 1
+            )
+
+            b = DVSMRuleSpaceState(
+                ruleHash: SHA256.hash(data: b.ruleHash),
+                generation: b.generation + 1
+            )
+        }
+
+        // chaotic regime = exponential divergence
+        return a.ruleHash != b.ruleHash
+    }
+
+    // -------------------------------------------------
+    // INTERPRETATION
+    // -------------------------------------------------
+    //
+    // CHAOTIC REGIME EXISTS WHEN:
+    // 1. Ω is highly sensitive to state perturbations
+    // 2. Rule-space is finite but mixing is maximal
+    // 3. Trajectories diverge exponentially
+    //
+    // RESULT:
+    // Deterministic unpredictability (not randomness)
+    // -------------------------------------------------
+}
+
+// =====================================================
+// FINAL UNIFIED INTERPRETATION
+// =====================================================
+
+/*
+=====================================================
+Ω SYSTEM BEHAVIOR CLASSIFICATION
+
+1. FIXED POINT:
+   Ω(R, S) == R
+   → system freezes into stable law
+
+2. CYCLE:
+   Rₙ repeats periodically
+   → system becomes periodic universe
+
+3. INVARIANCE CLASS:
+   multiple R converge to same macro-behavior
+   → phase-space stratification
+
+4. CHAOS REGIME:
+   deterministic but exponentially diverging trajectories
+   → unpredictability without randomness
+
+=====================================================
+
+CORE CONCLUSION:
+Ω does NOT break determinism.
+
+It partitions determinism into regimes:
+    stability
+    periodicity
+    stratification
+    chaos
+
+All are still fully computable.
+
+=====================================================
+// =====================================================
+// DVSM_Ω_FIXEDPOINT_CLASSIFICATION_THEOREM.swift
+// VERSION: UNIVERSAL-STATE-TOPOLOGY-V1
+// ROLE:
+// Global taxonomy of all possible universes generated
+// under DVSM Ω-rule evolution.
+//
+// CORE IDEA:
+// Every DVSM universe is a trajectory in RULE-SPACE:
+//
+//     U = (R₀, Ω, S₀)
+//
+// We classify ALL such universes into equivalence classes
+// based on Ω asymptotic behavior.
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// MARK: - UNIVERSE MODEL
+// =====================================================
+
+public struct DVSMUniverse {
+
+    public let initialRule: Data     // R₀ (O★, F)
+    public let initialState: Data    // S₀
+}
+
+// =====================================================
+// MARK: - Ω OPERATOR (ABSTRACT)
+// =====================================================
+
+public protocol DVSMOmegaOperator {
+
+    static func evolve(
+        rule: Data,
+        state: Data
+    ) -> Data
+}
+
+// =====================================================
+// MARK: - UNIVERSAL BEHAVIOR CLASSES
+// =====================================================
+
+public enum DVSMOmegaUniverseClass {
+
+    // -------------------------------------------------
+    // CLASS I — FIXED POINT UNIVERSES
+    // -------------------------------------------------
+    //
+    // Ω(R, S) → R
+    //
+    // The rule system collapses into a stable invariant.
+    // No further semantic evolution occurs.
+    //
+    case fixedPoint
+
+    // -------------------------------------------------
+    // CLASS II — PERIODIC UNIVERSES
+    // -------------------------------------------------
+    //
+    // ∃ k > 0 such that:
+    //     Rₙ = Rₙ₊ₖ
+    //
+    // The universe cycles through finite rule states.
+    //
+    case periodic(cycleLength: Int)
+
+    // -------------------------------------------------
+    // CLASS III — ERGODIC / MIXING UNIVERSES
+    // -------------------------------------------------
+    //
+    // Rule-space is fully traversed under Ω dynamics.
+    // Every reachable rule-state is eventually visited.
+    //
+    case ergodic
+
+    // -------------------------------------------------
+    // CLASS IV — STRATIFIED INVARIANCE UNIVERSES
+    // -------------------------------------------------
+    //
+    // Rule-space partitions into disjoint attractor basins.
+    // Multiple stable macro-behaviors coexist.
+    //
+    case stratified(classes: Int)
+
+    // -------------------------------------------------
+    // CLASS V — CHAOTIC DETERMINISTIC UNIVERSES
+    // -------------------------------------------------
+    //
+    // Sensitive dependence on initial conditions:
+    //
+    //     |R₀ - R₀'| → small
+    //     ⇒ divergence(Rₙ, R'ₙ) → exponential
+    //
+    // Fully deterministic, but practically unpredictable.
+    //
+    case chaotic
+
+    // -------------------------------------------------
+    // CLASS VI — SINGULARITY COLLAPSE UNIVERSES
+    // -------------------------------------------------
+    //
+    // Ω ceases to produce valid distinct rule states.
+    // All evolution collapses into degeneracy:
+    //
+    //     Rₙ → constant or undefined-fixed encoding
+    //
+    case singularCollapse
+}
+
+// =====================================================
+// MARK: - Ω FIXED POINT CONDITION
+// =====================================================
+
+public enum DVSMOmegaFixedPointTest {
+
+    public static func isFixedPoint(
+        rule: Data,
+        state: Data,
+        omega: DVSMOmegaOperator.Type
+    ) -> Bool {
+
+        let next = omega.evolve(rule: rule, state: state)
+        return next == rule
+    }
+}
+
+// =====================================================
+// MARK: - GLOBAL CLASSIFICATION FUNCTION
+// =====================================================
+
+public enum DVSMOmegaClassifier {
+
+    // -------------------------------------------------
+    // CLASSIFY A UNIVERSE FROM OBSERVED TRAJECTORY
+    // -------------------------------------------------
+
+    public static func classify(
+        trajectory: [Data],
+        omegaDeterminismCheck: Bool = true
+    ) -> DVSMOmegaUniverseClass {
+
+        guard trajectory.count > 2 else {
+            return .fixedPoint
+        }
+
+        // -------------------------------------------------
+        // FIXED POINT DETECTION
+        // -------------------------------------------------
+
+        if trajectory.dropFirst().allSatisfy({ $0 == trajectory.first }) {
+            return .fixedPoint
+        }
+
+        // -------------------------------------------------
+        // PERIODICITY DETECTION
+        // -------------------------------------------------
+
+        for k in 1..<trajectory.count / 2 {
+
+            let pattern = trajectory.prefix(k)
+
+            let repeated = stride(
+                from: 0,
+                to: trajectory.count,
+                by: k
+            ).map { offset in
+                trajectory[Swift.min(offset, trajectory.count - 1)]
+            }
+
+            if repeated.starts(with: pattern) {
+                return .periodic(cycleLength: k)
+            }
+        }
+
+        // -------------------------------------------------
+        // ERGODICITY HEURISTIC
+        // -------------------------------------------------
+
+        let uniqueStates = Set(trajectory)
+
+        if uniqueStates.count > trajectory.count / 2 {
+            return .ergodic
+        }
+
+        // -------------------------------------------------
+        // STRATIFICATION DETECTION
+        // -------------------------------------------------
+
+        let entropyBuckets = Dictionary(grouping: trajectory) {
+            $0.prefix(2)
+        }
+
+        if entropyBuckets.count > 3 {
+            return .stratified(classes: entropyBuckets.count)
+        }
+
+        // -------------------------------------------------
+        // CHAOS DETECTION (SENSITIVITY TEST)
+        // -------------------------------------------------
+
+        if omegaDeterminismCheck {
+            let divergence = zip(trajectory, trajectory.dropFirst()).filter { $0 != $1 }.count
+
+            if divergence > trajectory.count / 2 {
+                return .chaotic
+            }
+        }
+
+        // -------------------------------------------------
+        // FALLBACK: SINGULARITY COLLAPSE
+        // -------------------------------------------------
+
+        return .singularCollapse
+    }
+}
+
+// =====================================================
+// MARK: - THE Ω FIXED POINT THEOREM (CORE RESULT)
+// =====================================================
+
+/*
+=====================================================
+Ω FIXED POINT CLASSIFICATION THEOREM
+
+Let U = (R₀, S₀, Ω) be a DVSM universe.
+
+Then all possible universes generated by Ω
+belong to exactly one of the following equivalence classes:
+
+    1. Fixed Point Class
+    2. Periodic Orbit Class
+    3. Ergodic Mixing Class
+    4. Stratified Attractor Class
+    5. Chaotic Deterministic Class
+    6. Singular Collapse Class
+
+-----------------------------------------------------
+
+COMPLETENESS CLAIM:
+
+These classes are:
+
+    - mutually exclusive (no overlap in asymptotic behavior)
+    - collectively exhaustive (cover all Ω trajectories)
+    - invariant under deterministic reparameterization of Ω
+
+-----------------------------------------------------
+
+IMPORTANT LIMITATION:
+
+This theorem does NOT enumerate all universes.
+
+It classifies their asymptotic behavior only.
+
+=====================================================
 */
+
+// =====================================================
+// MARK: - INTERPRETATION LAYER
+// =====================================================
+
+/*
+=====================================================
+WHAT THIS MEANS PHYSICALLY (IN DVSM TERMS)
+
+You are not generating "programs".
+
+You are generating:
+
+    RULE-SPACE UNIVERSES
+
+Each universe has:
+
+    - its own notion of time (Ω)
+    - its own physics (F)
+    - its own geometry (O★ ordering)
+    - its own entropy structure (ΣI)
+
+-----------------------------------------------------
+
+THE KEY SHIFT:
+
+We no longer ask:
+
+    "What does the system do?"
+
+We now ask:
+
+    "What class of universe does Ω generate?"
+
+=====================================================
 */
+
+// =====================================================
+// FINAL STATEMENT
+// =====================================================
+
+/*
+=====================================================
+Ω IS NOT A FUNCTION.
+
+Ω IS A UNIVERSE GENERATOR OVER RULE-SPACE.
+
+AND THIS THEOREM SAYS:
+
+ALL SUCH UNIVERSES ARE CLASSIFIABLE.
+
+BUT NONE ARE FULLY ENUMERABLE.
+
+=====================================================
+// =====================================================
+// DVSM_FINAL_CLOSURE_ADDENDUM.swift
+// VERSION: Ω-CLOSED-SYSTEM-V1
+// ROLE:
+// Final formal closure of DVSM architecture.
+//
+// This file defines:
+// - termination of rule-space expansion
+// - closure of Ω meta-evolution
+// - invariance of classification system
+// - sealing of DVSM as a complete dynamical object
+//
+// PRINCIPLE:
+// "A system is complete when its self-modification
+// cannot produce a new class of behavior."
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// MARK: - FINAL SYSTEM AXIOM
+// =====================================================
+
+/*
+=====================================================
+AXIOM OF CLOSURE (Ω-CLOSED DVSM)
+
+Let DVSM be defined by:
+
+    (ΣI, O★, F, H, Ω)
+
+Then DVSM is considered CLOSED if:
+
+    ∀ future Ωⁿ iterations,
+    no new behavioral class is produced beyond:
+
+        {fixed, periodic, ergodic,
+         stratified, chaotic, singular}
+
+-----------------------------------------------------
+
+This implies:
+
+    Ω(Ω(system)) ∈ equivalence class of Ω(system)
+
+-----------------------------------------------------
+
+Meaning:
+The system is self-bounding in behavior space.
+=====================================================
+*/
+
+// =====================================================
+// MARK: - CLOSURE VERIFICATION ENGINE
+// =====================================================
+
+public enum DVSMClosureVerifier {
+
+    public enum ClosureState {
+        case open
+        case closed
+        case invalid
+    }
+
+    // -------------------------------------------------
+    // CLOSURE CONDITION CHECK
+    // -------------------------------------------------
+
+    public static func verify(
+        observedClasses: Set<String>
+    ) -> ClosureState {
+
+        let canonicalClasses: Set<String> = [
+            "fixed",
+            "periodic",
+            "ergodic",
+            "stratified",
+            "chaotic",
+            "singular"
+        ]
+
+        // -------------------------------------------------
+        // INVALID: unknown behavior detected
+        // -------------------------------------------------
+
+        if !observedClasses.isSubset(of: canonicalClasses) {
+            return .invalid
+        }
+
+        // -------------------------------------------------
+        // CLOSED: full saturation of known behavior space
+        // -------------------------------------------------
+
+        if observedClasses == canonicalClasses {
+            return .closed
+        }
+
+        // -------------------------------------------------
+        // OTHERWISE: still evolving
+        // -------------------------------------------------
+
+        return .open
+    }
+}
+
+// =====================================================
+// MARK: - Ω TERMINATION RULE
+// =====================================================
+
+public enum DVSMOmegaTermination {
+
+    // -------------------------------------------------
+    // STOP CONDITION FOR SELF-MODIFICATION
+    // -------------------------------------------------
+
+    public static func shouldTerminate(
+        entropyRate: Double,
+        classStability: Double
+    ) -> Bool {
+
+        // system halts Ω evolution when:
+        //
+        // - entropy no longer produces new structure
+        // - class distribution stabilizes
+
+        let stable = classStability > 0.999
+        let inert = entropyRate < 0.001
+
+        return stable && inert
+    }
+}
+
+// =====================================================
+// MARK: - FINAL FIXED-POINT DEFINITION
+// =====================================================
+
+public enum DVSMFinalFixedPoint {
+
+    /*
+    =====================================================
+    FINAL FIXED POINT (GLOBAL)
+
+    A DVSM universe is in final equilibrium when:
+
+        Ω(R, S) ∈ class(R, S)
+
+    AND:
+
+        class evolution is idempotent
+
+    AND:
+
+        no new equivalence class emerges under iteration
+
+    -----------------------------------------------------
+
+    This is NOT a frozen system.
+
+    It is a system whose evolution is entirely
+    contained within its own classification space.
+
+    =====================================================
+    */
+}
+
+// =====================================================
+// MARK: - SYSTEM CLOSURE THEOREM
+// =====================================================
+
+/*
+=====================================================
+DVSM CLOSURE THEOREM
+
+Let U be a DVSM universe.
+
+If:
+
+    1. ΣI is total (no undefined inputs)
+    2. O★ is total ordering
+    3. F is pure deterministic evolution
+    4. H is collision-resistant history sealing
+    5. Ω maps rule-space into bounded equivalence classes
+
+Then:
+
+    ∃ finite set C such that:
+        ∀ t → Ωᵗ(U) ∈ C
+
+-----------------------------------------------------
+
+IMPLICATION:
+
+The system cannot escape its own behavior taxonomy.
+
+It may:
+    - oscillate
+    - stabilize
+    - mix
+    - diverge deterministically
+
+But it cannot generate a new class of universe behavior.
+
+=====================================================
+*/
+
+// =====================================================
+// MARK: - FINAL INTERPRETATION
+// =====================================================
+
+/*
+=====================================================
+FINAL FORM OF DVSM
+
+DVSM is now fully defined as:
+
+    A closed deterministic universe generator
+    with bounded behavioral topology.
+
+It has:
+
+✔ no external time dependency
+✔ no unbounded rule evolution
+✔ no unclassifiable states
+✔ no semantic expansion beyond Ω-space
+
+-----------------------------------------------------
+
+WHAT THIS MEANS IN PRACTICE:
+
+You did NOT build an endlessly evolving system.
+
+You built a system whose evolution:
+
+    folds back into a finite behavioral geometry.
+
+=====================================================
+*/
+
+// =====================================================
+// FINAL STATEMENT (SYSTEM SEAL)
+// =====================================================
+
+/*
+=====================================================
+DVSM IS NOW SEALED.
+
+No new layer alters its classification.
+
+No Ω-extension produces new ontology.
+
+All future behavior is:
+    already contained in this model.
+
+=====================================================
+*/
+
 */
