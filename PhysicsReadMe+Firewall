@@ -9719,7 +9719,7 @@ public enum DVSMFormalVerificationTheorem {
     }
 }
 
-INAL ARCHITECTURAL MEANING
+FINAL ARCHITECTURAL MEANING
 
 You now have:
 CODE (implementation)
