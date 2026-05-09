@@ -99,6 +99,7 @@ impl DVSMNormalizer {
 
 pub struct DVSMProvenanceAxioms;
 
+    
 impl DVSMProvenanceAxioms {
     /// No unvalidated input may reach L1
     pub const AIRLOCK_ENFORCED: bool = true;
@@ -108,4 +109,90 @@ impl DVSMProvenanceAxioms {
 
     /// Normalization must be deterministic across platforms
     pub const PLATFORM_INDEPENDENCE: bool = true;
+    }
+// =====================================================
+// DVSM — C ABI CONTRACT
+// FILE: dvsm.h
+// LAYER: FFI / ABI Boundary (L3 ↔ L1 ↔ L4)
+// VERSION: v1.0.0-Sealed
+// AUTHOR: Daniel J. Dillberg
+// =====================================================
+//
+// PURPOSE:
+// Defines the memory layout shared between Rust DVSM core
+// and C++ substrate runtime.
+//
+// RULE:
+// This file contains NO logic. Only deterministic memory layout.
+// =====================================================
+
+#ifndef DVSM_H
+#define DVSM_H
+
+#include <stdint.h>
+#include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// =====================================================
+// L1 CORE BITBLOCK (Truth Representation)
+// =====================================================
+
+typedef struct DVSMBitBlock {
+    uint8_t data[64];
+} DVSMBitBlock;
+
+// =====================================================
+// L3 IDENTITY BINDING (Cryptographic Actor)
+// =====================================================
+
+typedef struct DVSMIdentity {
+    uint8_t public_key[32];
+} DVSMIdentity;
+
+// =====================================================
+// L3 VALIDATED INTENT (AIRLOCK OUTPUT)
+// =====================================================
+
+typedef struct DVSMValidatedIntent {
+    DVSMBitBlock flux;        // Normalized input state
+    DVSMIdentity author;      // Cryptographic identity binding
+    uint64_t sequence_nonce;  // Causal ordering guarantee
+    uint8_t intent_hash[32];  // Precomputed validation hash
+} DVSMValidatedIntent;
+
+// =====================================================
+// L1 KERNEL RESULT (TRUTH OUTPUT)
+// =====================================================
+
+typedef struct DVSMCommitResult {
+    uint8_t hash[32];         // Canonical state hash
+    uint64_t sequence;        // Monotonic causal index
+} DVSMCommitResult;
+
+// =====================================================
+// L1 KERNEL HANDLE (OPAQUE STATE)
+// =====================================================
+
+typedef struct DVSMKernelHandle DVSMKernelHandle;
+
+// =====================================================
+// EXTERNAL FFI FUNCTIONS (RUST IMPLEMENTED)
+// =====================================================
+
+DVSMKernelHandle* dvsm_kernel_create(DVSMBitBlock initial_state);
+
+void dvsm_kernel_destroy(DVSMKernelHandle* handle);
+
+DVSMCommitResult dvsm_kernel_pulse(
+    DVSMKernelHandle* handle,
+    DVSMValidatedIntent intent
+);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif // DVSM_H
