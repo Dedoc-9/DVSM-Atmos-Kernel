@@ -423,3 +423,99 @@ public struct AnchoredManifold {
     public let phaseLock: Double         // deterministic phase constraint
     public let stabilityEnvelope: Double  // reachability stability metric
 }
+// =====================================================
+// SRE_RESERVOIR_KERNEL.swift
+// VERSION: RESERVOIR-COLLAPSE-V2 (HARDENED MODEL)
+// ROLE: Nonlinear Physical Reservoir Computation Layer
+// =====================================================
+
+import Foundation
+
+/**
+ # CORE PRINCIPLE (ENGINEERING FORM)
+ 
+ A Physical Reservoir is a nonlinear dynamical system where:
+ 
+ Input  -> Boundary Condition Perturbation
+ System -> High-dimensional state evolution
+ Output -> Stable projection of transient dynamics
+ 
+ In this model:
+ - AcousticPSM = reservoir state space
+ - Collapse event = nonlinear attractor transition
+ - Photon signature = readout projection vector
+ */
+
+public struct ReservoirObservation {
+    public let inputSignature: Data
+    public let emissionSignature: Data
+    public let stabilityMetric: Double
+    public let entropyCompressionRatio: Double
+}
+
+// MARK: - L8 PHYSICAL RESERVOIR ENGINE
+
+public final class DVSMReservoirKernel {
+    
+    private let substrate: SonoluminescentReachEngine
+    
+    public init(substrate: SonoluminescentReachEngine) {
+        self.substrate = substrate
+    }
+    
+    /**
+     # RESERVOIR INFERENCE OPERATOR
+ 
+     Maps a deterministic input into a nonlinear physical trajectory
+     and extracts a stable signature from its collapse boundary.
+     */
+    public func compute(_ input: DVSMIntention) -> ReservoirObservation {
+        
+        // 1. Encode input into physical boundary conditions
+        let encoded = encodeToBoundary(input)
+        
+        // 2. Initialize acoustic manifold state
+        var state = substrate.encode(input: encoded)
+        
+        // 3. Drive toward nonlinear instability (controlled collapse)
+        let collapse = substrate.evolve(state)
+        
+        // 4. Extract physically emergent signature
+        let emission = collapse.photonEmissionSignature
+        
+        // 5. Compute stability metrics (how close to reachability boundary)
+        let stability = computeStability(pre: state, post: collapse.postState)
+        
+        // 6. Information compression gain (reservoir utility metric)
+        let compression = computeEntropyCompression(input: input, output: emission)
+        
+        return ReservoirObservation(
+            inputSignature: encoded,
+            emissionSignature: emission,
+            stabilityMetric: stability,
+            entropyCompressionRatio: compression
+        )
+    }
+    
+    // MARK: - ENCODING LAYER
+    
+    private func encodeToBoundary(_ input: DVSMIntention) -> Data {
+        // Deterministic projection into physical control space
+        return SHA256.hash(data: input.toData()).data
+    }
+    
+    // MARK: - STABILITY ANALYSIS
+    
+    private func computeStability(pre: AcousticPSM, post: AcousticPSM) -> Double {
+        let delta = abs(pre.collapseRadius - post.collapseRadius)
+        return max(0.0, 1.0 - delta)
+    }
+    
+    // MARK: - INFORMATION METRIC
+    
+    private func computeEntropyCompression(input: DVSMIntention, output: Data) -> Double {
+        let inputSize = Double(input.toData().count)
+        let outputSize = Double(output.count)
+        return inputSize / max(outputSize, 1.0)
+    }
+}
