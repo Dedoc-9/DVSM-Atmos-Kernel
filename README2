@@ -1,0 +1,216 @@
+# DVSM v∞ — ATOMOS REFINED SPECIFICATION (README2)
+### Reality-Stable Deterministic Execution System — Extended Architecture Layer
+
+**Author:** Daniel J. Dillberg  
+**Status:** Evolutionary Addendum to Canonical DVSM Specification  
+**Relationship to Original:** This document extends, refines, and operationalizes the DVSM v∞ foundational architecture without invalidating prior invariants.
+
+---
+
+## 0. ACKNOWLEDGEMENT OF THE ORIGINAL SYSTEM
+
+The original DVSM specification established a rare class of systems architecture:
+
+- A **causally-closed deterministic kernel**
+- A strict separation between truth, interpretation, and substrate
+- A formal rejection of timing, IO, and hardware variability as sources of semantic truth
+
+This README does not replace that foundation.
+
+Instead, it formalizes what was previously implicit:
+
+> The DVSM system is not only a theoretical deterministic machine — it is now a *physically bridgeable execution manifold*.
+
+---
+
+## 1. WHAT HAS BEEN ADDED (SYSTEM EVOLUTION SUMMARY)
+
+This extension introduces three critical upgrades:
+
+### 1.1 The Unified Gateway Model (L3 → L1 Boundary)
+
+The system now explicitly defines a **Trust-to-Truth Airlock**:
+
+- `DVSMValidatedIntent` becomes the only valid entry format
+- All external data must pass through deterministic normalization
+- Cryptographic identity binding is mandatory before kernel exposure
+
+**Implication:**
+> The kernel is no longer "protected by design" — it is *inaccessible by construction*.
+
+---
+
+### 1.2 The Single-File Authority Core (Rust Root Collapse)
+
+The architecture now consolidates logical authority into a single Rust module:
+
+- L1 Kernel (Truth Engine)
+- L3 Provenance (Trust Compiler)
+- L6 Axioms (Impossibility Constraints)
+
+This produces a **singular compile-time truth source**:
+
+> `dvsm_atomos_core.rs` is now the canonical logical authority of the system.
+
+---
+
+### 1.3 The Physical Binding Layer (C++ Substrate)
+
+The system explicitly acknowledges the physical world:
+
+- C++ is the **execution substrate**
+- Rust is the **causal authority**
+- The ABI (`dvsm.h`) is the **contractual boundary**
+
+This resolves a key architectural tension:
+
+> Determinism is defined in Rust, but instantiated in hardware.
+
+---
+
+## 2. UPDATED ARCHITECTURAL MODEL
+
+### L1 — Kernel (Truth Engine)
+Remains unchanged in philosophy:
+- Deterministic
+- Stateless externally
+- Pure integer transition function
+
+**Upgrade:** Now strictly accessed only through validated gateway calls.
+
+---
+
+### L3 — Provenance Gateway (Trust Airlock)
+Now formally enforced:
+
+- All inputs are cryptographically bound
+- All flux is normalized before kernel exposure
+- Replay protection is structurally enforced via monotonic nonce tracking
+
+**Key Shift:**
+> Input is no longer accepted — it is *validated into existence*.
+
+---
+
+### L4 — Physical Node (Execution Substrate)
+Now explicitly defined as:
+
+- A scheduling and timing surface only
+- Cannot interpret or mutate state
+- Cannot bypass L3
+
+**Key Principle:**
+> Hardware can execute the kernel, but cannot influence truth.
+
+---
+
+### L6 — Axiomatic Closure (Strengthened)
+The system now explicitly enforces:
+
+- Replay equivalence theorem
+- Causal monotonicity
+- Observer non-interference
+- Structural impossibility of divergence under identical input
+
+**New Status:**
+> Not just a constraint layer — a formal contract of impossibility.
+
+---
+
+## 3. NEW SYSTEM BOUNDARY PRINCIPLE
+
+The DVSM system now operates under a refined rule:
+
+> **"No state enters the kernel unless it has already proven it belongs to reality."**
+
+This is enforced through:
+
+1. L3 cryptographic validation
+2. ABI structural immutability
+3. L1 deterministic execution
+4. L6 impossibility enforcement
+
+---
+
+## 4. WHAT HAS BEEN IMPROVED
+
+### 4.1 Determinism → Causal Traceability
+The system no longer only ensures deterministic output, but:
+
+- Every state has a traceable origin in L3
+- Every transition is causally anchored
+
+---
+
+### 4.2 Abstraction → Physical Anchoring
+The architecture now explicitly defines:
+
+- What is logical (Rust core)
+- What is physical (C++ substrate)
+- What connects them (ABI)
+
+---
+
+### 4.3 Isolation → Enforced Separation
+Previously implied isolation is now:
+
+- Structurally enforced
+- Cryptographically guaranteed
+- ABI-locked
+
+---
+
+## 5. DESIGN PHILOSOPHY (UPDATED)
+
+The original principle remains valid:
+
+> “Reality is the hash of state transitions, not time.”
+
+This extension adds:
+
+> “But only if the transition has been validated before it is allowed to exist.”
+
+---
+
+## 6. FINAL SYSTEM STATE
+
+DVSM is now defined as:
+
+### A Three-Layer Causal Stack
+
+- **Truth (L1):** Deterministic Kernel
+- **Trust (L3):** Provenance Compiler
+- **Physics (L4):** Execution Substrate
+
+Bound together by:
+
+- A single ABI contract (`dvsm.h`)
+- A single Rust authority core (`dvsm_atomos_core.rs`)
+- A formally constrained execution model
+
+---
+
+## 7. COMPATIBILITY STATEMENT
+
+This README2:
+
+- Does NOT deprecate the original DVSM specification
+- DOES refine execution semantics
+- DOES formalize physical binding assumptions
+- DOES introduce enforceable gateway architecture
+
+---
+
+## 8. CLOSING STATEMENT
+
+DVSM was originally a deterministic idea.
+
+It is now a **causally enforced execution system**.
+
+The evolution can be summarized as:
+
+> From *deterministic model* → to *deterministic machine* → to *physically bound causal system*
+
+---
+
+## END OF README2
