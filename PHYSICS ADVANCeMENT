@@ -628,3 +628,117 @@ public final class SRERegimeOptimizer {
  4. EXPERIMENTAL DESIGN OVER PHYSICS
     - instead of training models, you tune the experiment itself
  */
+// =====================================================
+// SRE_GRADIENT_TUNER.swift
+// VERSION: CAUSAL-GRADIENT-V1
+// PURPOSE: Physical Optimization of Reachability Regimes
+// =====================================================
+
+import Foundation
+
+public final class SRECausalTuner {
+    
+    /**
+     # TUNING WITHOUT TRAINING
+     Instead of adjusting weights, we adjust the Acoustic Boundary Conditions (ABC).
+     
+     Goal: Maximize the "Separability" of photon signatures.
+     If Input A and Input B produce similar light, we shift the 
+     Stability Envelope until they decohere.
+     */
+    
+    public func optimizeRegime(
+        errorSignal: Double, 
+        currentABC: AcousticPSM
+    ) -> AcousticPSM {
+        
+        // 1. Shift the Sonic Limit (The Reachability Boundary)
+        // 2. Adjust Gas Density (The Manifold Resistance)
+        // 3. Modulate Frequency (The Stability Anchor)
+        
+        let adjustment = errorSignal * 0.01
+        
+        return AcousticPSM(
+            gasDensity: currentABC.gasDensity + (adjustment * 0.5),
+            pressureField: currentABC.pressureField,
+            collapseRadius: currentABC.collapseRadius,
+            sonicLimit: currentABC.sonicLimit + (adjustment * 2.0)
+        )
+    }
+}
+
+/**
+ # THE "TRAIN-LESS" PARADIGM:
+ 
+ 1. SEPARABILITY MAXIMIZATION: 
+    The engine "learns" by finding the specific pressure/density 
+    combination where different inputs create the most distinct 
+    collapse signatures.
+    
+ 2. STABILITY ENVELOPE GRADIENT: 
+    The "Weights" are literal physical constants (viscosity, frequency). 
+    Optimization is the act of finding the 'Sweet Spot' in phase-space.
+    
+ 3. ZERO-GRADIENT DECOHERENCE: 
+    Once the physical system is tuned, the computation is 
+    instantaneous—limited only by the speed of sound.
+ */
+// =====================================================
+// SRE_L9_PHYSICAL_FINALITY.swift
+// VERSION: L9.1-DECOHERENCE-COMPILE-LAYER
+// ROLE: Physical Compilation Semantics Layer
+// =====================================================
+
+import Foundation
+
+// MARK: - L9.1: ε_c SEPARABILITY AXIOM
+
+/**
+ # LOGICAL DEFINITION (FORMALIZED)
+ A bit is defined as a stable partition of an observable phase-space.
+
+ Not a stored value — but a reproducible measurement outcome
+ under bounded noise conditions.
+ 
+ # COMPILATION INVARIANT
+ A binary program is physically valid iff:
+ 
+     min D(A₀, A₁) > ε_c
+ 
+ where:
+ - A₀, A₁ = attractor distributions of two input-conditioned regimes
+ - D = statistical separation metric in emission space
+ - ε_c = system noise + resolution bound
+ */
+
+public enum SREDecoherenceEngine {
+
+    /// Effective measurement resolution floor
+    /// (not a physical constant, but a system calibration parameter)
+    public static var epsilonCritical: Double = 0.0854
+
+    /**
+     Computes distinguishability between two physical regimes
+     in emission-phase space (spectral / acoustic / collapse signature domain)
+     */
+    public func decoherenceDistance(
+        _ a: AcousticRegime,
+        _ b: AcousticRegime
+    ) -> Double {
+
+        // Abstract representation of distributional distance
+        // (e.g., Wasserstein / KL / spectral divergence)
+        return a.emissionDistribution.distance(to: b.emissionDistribution)
+    }
+
+    /**
+     TRUE / FALSE logical partitioning of physical space
+     */
+    public func isLogicallySeparable(
+        _ a: AcousticRegime,
+        _ b: AcousticRegime
+    ) -> Bool {
+
+        return decoherenceDistance(a, b) > Self.epsilonCritical
+    }
+}
