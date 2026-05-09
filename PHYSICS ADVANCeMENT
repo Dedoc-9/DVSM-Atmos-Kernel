@@ -375,3 +375,51 @@ public struct SREDecoder {
  It is *collapsed out of physics*.
  =====================================================
  */
+// MARK: - L1 STABILITY ANCHOR (REFINED)
+// PURPOSE: Deterministic coupling between Morphism Seed and physical manifold stability.
+
+extension SonoluminescentReachEngine {
+    
+    /**
+     # L1 ANCHOR FUNCTION
+ 
+     The Morphism Seed does not merely "select" a frequency.
+     It defines a deterministic constraint boundary on the acoustic manifold.
+ 
+     This ensures that every collapse trajectory is replay-equivalent
+     across identical seed + input conditions.
+     */
+    
+    private func anchorManifold(_ state: AcousticPSM, seed: UInt64) -> AnchoredManifold {
+        
+        // Convert seed into deterministic phase constraint
+        let baseFrequency: Double = 20_000.0
+        let modulation: Double = Double(seed % 10_000) / 10.0
+        
+        let omega = baseFrequency + modulation
+        
+        // Phase-lock constraint derived from thermodynamic state
+        let phaseLock = (state.pressureField * omega).truncatingRemainder(dividingBy: 1.0)
+        
+        // Stability envelope ensures collapse remains within reachable manifold
+        let stabilityEnvelope = max(
+            0.0,
+            1.0 - abs(state.collapseRadius * phaseLock)
+        )
+        
+        return AnchoredManifold(
+            omega: omega,
+            phaseLock: phaseLock,
+            stabilityEnvelope: stabilityEnvelope
+        )
+    }
+}
+
+// MARK: - DERIVED STRUCTURE
+
+/// Encodes deterministic coupling between seed and acoustic manifold
+public struct AnchoredManifold {
+    public let omega: Double              // acoustic driving frequency
+    public let phaseLock: Double         // deterministic phase constraint
+    public let stabilityEnvelope: Double  // reachability stability metric
+}
