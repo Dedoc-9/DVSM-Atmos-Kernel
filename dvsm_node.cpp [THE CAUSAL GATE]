@@ -1,0 +1,43 @@
+// Author: Daniel J. Dillberg
+// =====================================================
+// DVSM — PHYSICAL SUBSTRATE (THE NODE)
+// FILE: dvsm_node.cpp
+// STATUS: TERMINAL PHYSICAL CLOSURE [SEALED]
+// =====================================================
+
+#include "dvsm.h"
+#include <mutex>
+#include <atomic>
+#include <vector>
+#include <thread>
+
+class DVSMNode {
+private:
+    DVSMKernel* kernel;    // Owned Opaque Handle
+    std::mutex causal_gate; // L4 SERIALIZATION: The physical truth-gate
+
+public:
+    DVSMNode() {
+        kernel = dvsm_kernel_create();
+    }
+
+    // AXIOM: Serialized Ingestion. L3 Smelters converge here.
+    // This resolves the "Concurrency vs. Singularity" debate.
+    DVSMCommitResult dispatch_pulse(const DVSMValidatedIntent& intent) {
+        std::lock_guard<std::mutex> lock(causal_gate);
+        // The Kernel remains the ONLY source of sequence truth.
+        return dvsm_kernel_pulse(kernel, &intent);
+    }
+
+    ~DVSMNode() {
+        dvsm_kernel_destroy(kernel);
+    }
+};
+
+// --- L4.1: HARDWARE BINDING ---
+int main() {
+    DVSMNode node;
+    // Physical Substrate now hosts the Causal Machine.
+    // All truth flows through the causal_gate into Core 0.
+    return 0;
+}
