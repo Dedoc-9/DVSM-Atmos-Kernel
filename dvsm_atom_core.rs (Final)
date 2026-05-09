@@ -3734,21 +3734,133 @@ H (replay sealing)
 Ω (rule adaptation, optional)
 
 // =====================================================
-// FINAL STATEMENT (SYSTEM SEAL)
+// DVSM_FINAL_CLOSURE_AXIOM.swift
+// VERSION: OMEGA-LOCKED-CLOSURE-V1
+// ROLE:
+// Defines the formal closure condition of the DVSM system.
+// This is NOT a claim of absolute finality,
+// but a constraint: no evolution is valid unless it is
+// derivable from the existing Ω-axioms.
 // =====================================================
 
+import Foundation
+
+// =====================================================
+// MARK: - CLOSURE AXIOM STATE
+// =====================================================
+
+public struct DVSMClosureState {
+
+    /// Hash of the last accepted global system configuration
+    public let systemInvariantHash: Data
+
+    /// Hash of Ω-rule set (rule evolution kernel)
+    public let omegaRuleHash: Data
+
+    /// Hash of (ΣI, O★, F, H) structural core
+    public let kernelHash: Data
+
+    /// Indicates whether system is in validated fixed-point
+    public let isAtFixedPoint: Bool
+}
+
+// =====================================================
+// MARK: - EVOLUTION ATTEMPT
+// =====================================================
+
+public struct DVSMOmegaProposal {
+
+    public let proposedOmegaHash: Data
+    public let proposedOrderingHash: Data
+    public let proposedEvolutionHash: Data
+
+    /// Must include proof of derivability from current Ω-state
+    public let derivationProofHash: Data
+}
+
+// =====================================================
+// MARK: - CLOSURE VERIFIER
+// =====================================================
+
+public enum DVSMClosureVerifier {
+
+    // -------------------------------------------------
+    // CORE INVARIANT:
+    // Any Ω-change must be a FIXED-POINT PRESERVING map.
+    // -------------------------------------------------
+
+    public static func validate(
+        current: DVSMClosureState,
+        proposal: DVSMOmegaProposal
+    ) -> Bool {
+
+        // 1. Kernel must remain invariant
+        guard proposal.proposedEvolutionHash == current.kernelHash else {
+            return false
+        }
+
+        // 2. Ordering system must remain derivable
+        guard proposal.proposedOrderingHash != Data() else {
+            return false
+        }
+
+        // 3. Ω evolution must be self-consistent
+        let omegaStable =
+            proposal.proposedOmegaHash == current.omegaRuleHash
+
+        // 4. Derivation proof must exist (non-empty constraint)
+        let hasProof =
+            !proposal.derivationProofHash.isEmpty
+
+        // 5. Fixed-point condition:
+        // Ω(S) = S (no net change in rule space)
+        let fixedPointPreserved =
+            omegaStable && hasProof
+
+        return fixedPointPreserved
+    }
+}
+
+// =====================================================
+// MARK: - SYSTEM CLOSURE INTERPRETATION
+// =====================================================
 /*
+DVSM CLOSURE THEOREM (REFINED)
+
+The system is NOT "sealed" in the absolute sense.
+
+Instead:
+    It is FIXED-POINT BOUND.
+
+Meaning:
+1. The system may evolve internally.
+2. BUT only within the invariant-preserving Ω-space.
+3. Any proposed rule evolution must satisfy:
+       Ω(S) = S'  where S' ≡ S in kernel equivalence class.
+
 =====================================================
-DVSM IS NOW SEALED.
 
-No new layer alters its classification.
+IMPLICATION:
+- No new ontology is created freely.
+- New behaviors are only valid if they are
+  projections of existing invariant structure.
+- Rule evolution collapses into fixed-point traversal,
+  not arbitrary mutation.
 
-No Ω-extension produces new ontology.
+=====================================================
 
-All future behavior is:
-    already contained in this model.
+FINAL STATE DESCRIPTION:
+
+DVSM is:
+    a constrained self-referential fixed-point system
+    over (ΣI, O★, F, H, Ω)
+
+not a closed universe,
+but a closed equivalence class of universes.
 
 =====================================================
 */
+
+=====================================================
 
 */
