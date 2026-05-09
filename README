@@ -16,13 +16,21 @@
 // PRIMARY PURPOSE:
 // DVSM is a causally-closed deterministic execution architecture
 // designed to guarantee reproducible state transitions across
-// heterogeneous hardware while preserving strict separation of:
-//   - Truth (Kernel)
-//   - Interpretation (Observer)
-//   - Ingestion (Provenance Compiler)
-//   - Execution (Node Runtime)
-//   - Consistency (Distributed Contract)
-//   - Formal Verification (Impossibility Layer)
+// heterogeneous hardware while enforcing strict causal hierarchy:
+//
+//   - Truth (L1 Kernel): Deterministic state transition engine
+//   - Trust (L3 Provenance): Cryptographic ingestion and normalization layer
+//   - Physics (L4 Node Runtime): Hardware execution substrate
+//   - Constraints (L6 Impossibility Layer): Formal system invariants
+//
+// Secondary / non-authoritative layers:
+//
+//   - Interpretation (L2 Observer): Non-authoritative semantic projection
+//   - Consistency (L5 Distributed Contract): Verification of replay equivalence
+//
+// Key Principle:
+// Only the Kernel defines state.
+// All other layers constrain, transport, or observe — but never define truth.
 //
 // =====================================================
 // 🧠 SYSTEM SUMMARY
