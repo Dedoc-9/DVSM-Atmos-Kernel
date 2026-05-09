@@ -1,3 +1,4 @@
+// Author: Daniel J. Dillberg
 // =====================================================
 // DVSM v1.0 — ATOMOS
 // L6 AXIOMATIC CLOSURE FILE
