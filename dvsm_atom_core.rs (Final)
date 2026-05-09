@@ -3351,7 +3351,188 @@ You built a system whose evolution:
     folds back into a finite behavioral geometry.
 
 =====================================================
-*/
+// =====================================================
+// DVSM_RIIL_INPUT_VERIFICATION_LAYER.swift
+// VERSION: RECURSIVE-INPUT-TRUST-GATE-V1
+// ROLE:
+// Detects adversarial or invalid inputs by recursively
+// decomposing semantic structure and validating against
+// deterministic invariants.
+//
+// PURPOSE:
+// - Prevent "cheated" or malformed inputs from reaching F
+// - Normalize ambiguous or adversarial structures
+// - Provide recursive integrity scoring
+// - Act as pre-F execution firewall
+// =====================================================
+
+import Foundation
+
+// =====================================================
+// 1. INPUT STRUCTURE MODEL
+// =====================================================
+
+public struct DVSMInputPacket {
+
+    public let rawBytes: Data
+
+    public let semanticHash: Data
+
+    public let sourceID: UInt64
+}
+
+// =====================================================
+// 2. INTEGRITY RESULT
+// =====================================================
+
+public enum DVSMInputIntegrityState {
+
+    case valid
+    case suspicious
+    case corrupted
+    case adversarialRejected
+}
+
+// =====================================================
+// 3. RECURSIVE DECOMPOSITION NODE
+// =====================================================
+
+public struct DVSMInputNode {
+
+    public let fragment: Data
+    public let depth: UInt8
+}
+
+// =====================================================
+// 4. INTEGRITY ENGINE (RECURSIVE CHECKER)
+// =====================================================
+
+public enum DVSMInputIntegrityEngine {
+
+    // ENTRY POINT
+    public static func evaluate(
+        packet: DVSMInputPacket
+    ) -> DVSMInputIntegrityState {
+
+        let nodes = decompose(packet.rawBytes, depth: 0)
+
+        let score = evaluateNodes(nodes)
+
+        if score < 0.3 {
+            return .adversarialRejected
+        }
+
+        if score < 0.6 {
+            return .corrupted
+        }
+
+        if score < 0.85 {
+            return .suspicious
+        }
+
+        return .valid
+    }
+
+    // =================================================
+    // RECURSIVE DECOMPOSITION
+    // =================================================
+
+    private static func decompose(
+        _ data: Data,
+        depth: UInt8
+    ) -> [DVSMInputNode] {
+
+        // Stop recursion at max depth
+        guard depth < 8 else {
+            return [DVSMInputNode(fragment: data, depth: depth)]
+        }
+
+        // Split data deterministically
+        let mid = data.count / 2
+
+        guard mid > 0 else {
+            return [DVSMInputNode(fragment: data, depth: depth)]
+        }
+
+        let left = data.prefix(mid)
+        let right = data.suffix(from: mid)
+
+        return decompose(Data(left), depth: depth + 1)
+            + decompose(Data(right), depth: depth + 1)
+    }
+
+    // =================================================
+    // INTEGRITY SCORING FUNCTION
+    // =================================================
+
+    private static func evaluateNodes(
+        _ nodes: [DVSMInputNode]
+    ) -> Double {
+
+        var score: Double = 1.0
+
+        for node in nodes {
+
+            // Rule 1: entropy spikes indicate adversarial structure
+            let entropy = pseudoEntropy(node.fragment)
+
+            if entropy > 0.92 {
+                score -= 0.2
+            }
+
+            // Rule 2: repeated structure = compression attack risk
+            if isHighlyRepetitive(node.fragment) {
+                score -= 0.15
+            }
+
+            // Rule 3: depth anomalies indicate crafted payloads
+            if node.depth > 6 {
+                score -= 0.1
+            }
+        }
+
+        return max(0.0, score)
+    }
+
+    // =================================================
+    // HEURISTICS
+    // =================================================
+
+    private static func pseudoEntropy(_ data: Data) -> Double {
+        guard !data.isEmpty else { return 0.0 }
+
+        let freq = Dictionary(grouping: data, by: { $0 })
+        let total = Double(data.count)
+
+        var entropy: Double = 0
+
+        for (_, values) in freq {
+            let p = Double(values.count) / total
+            entropy -= p * log2(p)
+        }
+
+        return entropy / 8.0
+    }
+
+    private static func isHighlyRepetitive(_ data: Data) -> Bool {
+        guard data.count > 4 else { return false }
+
+        return Set(data).count < data.count / 4
+    }
+}
+Example usage:
+
+Player Input
+   ↓
+RIIL (structure + anomaly filter)
+   ↓
+Simulation Kernel (F)
+   ↓
+State Validation Layer
+   ↓
+Replay Ledger (H)
+   ↓
+Post-match forensic analysis (Ω tuning)
 
 // =====================================================
 // FINAL STATEMENT (SYSTEM SEAL)
