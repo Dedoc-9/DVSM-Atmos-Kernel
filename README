@@ -11,6 +11,36 @@
 // STATUS:
 // Closed Formal Specification / Deterministic Reachability Architecture / High-Assurance Distributed Execution System
 //
+//
+/**
+ # ARCHITECTURAL ARTIFACTS
+ 
+ ## L1 — TRUTH KERNEL
+ Fixed-point, sequence-ordered state evolution anchored by bit-identical
+ cryptographic hashes and deterministic morphism execution.
+ 
+ ## L2.8 — POCR FILTER
+ Stateless geometric reachability operator defining validity strictly as
+ manifold reachability under bounded observability constraints.
+ Invalid transitions are classified as non-computable causal orphans.
+ 
+ ## L4 — PHYSICAL SUBSTRATE
+ Canonical Big-Endian normalization layer ensuring bit-parity across
+ ARM, x86, and RISC-V execution environments.
+ 
+ ## L5 — REPLAY EQUIVALENCE
+ Cross-node deterministic consensus maintained through identical
+ state-trace hashes, canonical serialization, and entropy-seed evolution.
+ 
+ ## L6 — ENCODED FAILURE
+ Faults are encoded as deterministic state transitions rather than
+ runtime exceptions, preserving replay symmetry and causal continuity.
+ 
+ ## L4.5 — CAUSAL ANCHOR
+ Backup and recovery operate through verifiable replay of committed
+ intention streams rather than direct snapshot injection.
+
+//
 // PRIMARY PURPOSE:
 // DVSM is a causally-closed deterministic execution architecture
 // designed to guarantee reproducible state transitions across
