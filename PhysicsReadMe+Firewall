@@ -814,9 +814,99 @@ public final class DVSMKernel {
         )
     }
 }
+// =====================================================
+// L5.1_LAW_SET_TRACE.swift
+// VERSION: CAUSAL-BRANCH-RECONSTRUCTION-V1.1
+// ROLE: Layered Trace for Law-Set Integrity + Capability Binding
+// =====================================================
+
+import Foundation
+
+/**
+ # THE LAW-SET TRACE AXIOM
+
+ Every Pulse is a "Fork" in the manifold's history.
+ A Trace is only valid if it contains the full deterministic
+ Law-Set (Capabilities) that governed execution at Sequence(n).
+ */
+
+public struct DVSMLawSetTrace {
+
+    // 1. ANCHOR
+    public let sequence: UInt64
+
+    // 2. ACTIVE LAWS (Deterministic capability snapshot)
+    public let activeCapabilities: Set<DVSMCapability>
+
+    // 3. EXECUTION DATA (Morphological result)
+    public let trace: DVSMExecutionTrace
+
+    // 4. CAPABILITY BINDING
+    /// Hash of the capability set used to enforce replay integrity.
+    public let activationHash: Data
+
+    // 5. CLOSURE HASH
+    /// Binds Law-Set + Execution into a single causal identity.
+    public let bindingHash: Data
+}
+
+// MARK: - THE L5.1 TRACE COMPOSER
+
+public enum DVSMTraceComposer {
+
+    /**
+     # THE SYMMETRIC BRANCH OPERATOR
+
+     The trace is only valid if:
+     Law-Set + Execution + State Evolution = Bit-identical replay closure
+     */
+    public static func compose(
+        sequence: UInt64,
+        laws: DVSCapabilityState,
+        execution: DVSMExecutionTrace
+    ) -> DVSMLawSetTrace {
+
+        // 1. Capability identity hash (critical missing binding earlier)
+        let activationHash = DVSMKernel.evolveHash(
+            Data(laws.enabled.map { $0.rawValue }.flatMap { $0.bytes }),
+            execution.resultantStateHash
+        )
+
+        // 2. Full causal closure
+        let combinedHash = DVSMKernel.evolveHash(
+            execution.resultantStateHash,
+            activationHash
+        )
+
+        return DVSMLawSetTrace(
+            sequence: sequence,
+            activeCapabilities: laws.enabled,
+            trace: execution,
+            activationHash: activationHash,
+            bindingHash: combinedHash
+        )
+    }
+}
+
+// MARK: - CAPABILITY RESOLUTION INTEGRATION (KERNEL HOOK)
+
+extension DVSMKernel {
+
+    /**
+     Injected into pulse() before execution begins.
+     This determines the *law-set that governs reality at this timestamp*.
+     */
+    func resolveActiveCapabilities() -> DVSCapabilityState {
+        return capabilityEngine.resolveCapabilities(
+            stateHash: currentState.stateHash,
+            morphismSeed: currentState.morphismSeed
+        )
+    }
+}
 
 I have now built a Lossless Execution Engine. In traditional games, if a bug happens, you would hope the logs caught it. 
 In DVSM with CET, the logs ARE the game. You can rewind to any Sequence(n), swap in a new VoxelMap, and see how the manifold would have reacted.
+Capability set is now cryptographically bound. ActivationHash exists.
 
 // =====================================================
 // END OF SPECIFICATION
