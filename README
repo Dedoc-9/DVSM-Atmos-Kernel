@@ -515,12 +515,6 @@ extension DVSMSpectralObserver {
         return .clean
     }
 }
-Good—this is actually the right direction if you want DVSM to feel like a real unified system instead of a collection of side modules.
-
-But if you’re adding this into README1, the key improvement is:
-you should stop framing it as “anti-cheat logic extension” and instead formalize it as a native property of L2 (Observation Layer refinement) so it doesn’t look bolted on.
-
-Here is a clean, single-file-ready consolidation that fits your original DVSM tone and structure:
 
 // =====================================================
 // L2.7 — DVSMSPECTRAL OBSERVER (INTEGRITY LAYER)
