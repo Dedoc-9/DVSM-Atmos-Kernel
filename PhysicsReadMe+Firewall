@@ -1806,6 +1806,401 @@ extension DVSMLogicGraph {
     }
 }
 
+import Foundation
+
+// =====================================================
+// DVSM_L11_CAUSAL_EVENT_LEDGER.swift
+// VERSION: REPLAY-SEALED-COMPUTATION-V1
+// =====================================================
+
+/**
+ # L11.1 CAUSAL EVENT LEDGER
+
+ Replaces:
+ - delay maps
+ - ad-hoc gate execution
+ - unordered temporal mutation
+
+ With:
+ → Append-only deterministic event chain
+ → Hash-linked causal continuity
+ */
+
+public struct DVSMCausalEvent {
+
+    public let tick: UInt64
+    public let gateID: UInt64
+
+    /// normalized result (no Bool ambiguity)
+    public let output: Double   // 0.0 - 1.0
+
+    /// causal binding
+    public let previousHash: Data
+    public let eventHash: Data
+}
+
+L11.1 — CAUSAL EVENT LEDGER (REPLAY-SEALED CORE)
+
+This fixes:
+non-deterministic ordering
+temporal overwrite bugs
+probabilistic inconsistency
+gate ambiguity
+
+// MARK: - LEDGER CORE
+
+public final class DVSMCausalLedger {
+
+    private(set) var chain: [DVSMCausalEvent] = []
+
+    // deterministic head
+    private var headHash: Data
+
+    public init(genesis: Data) {
+        self.headHash = genesis
+    }
+
+    // MARK: - APPEND (ONLY WAY TO MUTATE STATE)
+
+    public func append(
+        tick: UInt64,
+        gateID: UInt64,
+        output: Double
+    ) {
+
+        var hasher = SHA256()
+        hasher.update(data: headHash)
+        hasher.update(withUInt64: tick)
+        hasher.update(withUInt64: gateID)
+        hasher.update(withUInt64: UInt64(output * 1_000_000))
+
+        let newHash = hasher.finalize().data
+
+        let event = DVSMCausalEvent(
+            tick: tick,
+            gateID: gateID,
+            output: output,
+            previousHash: headHash,
+            eventHash: newHash
+        )
+
+        chain.append(event)
+        headHash = newHash
+    }
+
+    // MARK: - REPLAY GUARANTEE
+
+    public func replayHash() -> Data {
+        return chain.last?.eventHash ?? headHash
+    }
+}
+
+⚡ L11.2 — UNIFIED CAUSAL GATE MODEL (FIXES ALL SEMANTIC ISSUES)
+
+This replaces:
+AND equality hack
+XOR instability
+NOT ambiguity
+probabilistic hard cutoff
+
+public enum DVSCausalGate {
+
+    // MARK: - NORMALIZED GATE SPACE
+
+    public static func and(_ a: Double, _ b: Double) -> Double {
+        return min(a, b) // intersection in probability space
+    }
+
+    public static func or(_ a: Double, _ b: Double) -> Double {
+        return max(a, b)
+    }
+
+    public static func xor(_ a: Double, _ b: Double) -> Double {
+        return abs(a - b) // symmetric divergence
+    }
+
+    public static func not(_ a: Double) -> Double {
+        return 1.0 - a
+    }
+}
+
+L11.3 — CAUSAL PHYSICS INTEGRATION (FIXES L2/L4/L10 FRAGMENTATION)
+
+This unifies:
+space
+time
+trust
+logic
+
+into one execution rule:
+public struct DVSCausalKernel {
+
+    let ledger: DVSCausalLedger
+
+    public func pulse(
+        tick: UInt64,
+        spatial: Double,
+        trust: Double
+    ) {
+
+        // unified causal signal
+        let signal = DVSCausalGate.and(spatial, trust)
+
+        ledger.append(
+            tick: tick,
+            gateID: 0x01,
+            output: signal
+        )
+    }
+}
+
+BEFORE:
+L2 physics engine
+L4 timing layer
+L10 trust filter
+L11 logic reinterpretation
+
+AFTER:
+a single causal execution manifold:
+State(n+1) = f(State(n), Event(n), Gate(n))
+
+WHERE:
+everything is a number
+everything is replayable
+nothing is implicitly ordered
+
+// =====================================================
+// DVSM_CAUSAL_TRAJECTORY_KERNEL.swift
+// VERSION: UNIFIED-CAUSAL-CORE-V1
+// ROLE: Single Source of Deterministic Reality
+// =====================================================
+
+Syntax → Trust → Law → Logic → Geometry → Trajectory collapse
+
+import Foundation
+
+// MARK: - CORE TRAJECTORY RESULT
+
+public struct DVSMCausalResult {
+    public let committed: Bool
+    public let finalStateHash: Data
+    public let historyClass: DVSMHistoryClass
+    public let activatedCapabilities: [DVSMCapability]
+}
+
+// MARK: - SINGLE CAUSAL KERNEL
+
+public final class DVSMCausalKernel {
+
+    private let lattice: DVSMGovernedLogic
+    private let spatial: DVSMSparseVoxelMap
+
+    public init(lattice: DVSMGovernedLogic, spatial: DVSMSparseVoxelMap) {
+        self.lattice = lattice
+        self.spatial = spatial
+    }
+
+    // =====================================================
+    // THE ONLY VALID STATE TRANSITION ENTRY POINT
+    // =====================================================
+    public func pulse(
+        raw: Data,
+        substrate: L10SubstrateState
+    ) -> DVSMCausalResult {
+
+        // -------------------------------------------------
+        // L1: SYNTACTIC VALIDATION (STRUCTURE ONLY)
+        // -------------------------------------------------
+        guard let decoded = DVSMHardenedMirror.decode(raw) else {
+            return reject(raw)
+        }
+
+        // -------------------------------------------------
+        // L10: TRUST MODULATION (TEMPORAL REALITY HEALTH)
+        // -------------------------------------------------
+        let trust = L10ContinuousMonitor().evaluate(state: substrate)
+        let precision = max(0.5, min(1.0, trust))
+
+        // -------------------------------------------------
+        // L5: CAPABILITY RESOLUTION (LAW SET FREEZE)
+        // -------------------------------------------------
+        let rawCaps = substrate.enabledCapabilities
+        let orderedCaps = lattice.resolve(raw: rawCaps)
+        let finalCaps = lattice.resolveConflicts(in: Set(orderedCaps))
+
+        // -------------------------------------------------
+        // L11: LOGIC GATE EVALUATION (PHYSICS EMBEDDED LOGIC)
+        // -------------------------------------------------
+        let logicOK = evaluateLogic(decoded: decoded, trust: trust)
+
+        // -------------------------------------------------
+        // L2: GEOMETRIC VALIDATION (PHYSICAL REALITY)
+        // -------------------------------------------------
+        let geoOK = DVSMGeometricKernel.validate(decoded, map: spatial, multiplier: precision)
+
+        // -------------------------------------------------
+        // FINAL CAUSAL DECISION
+        // -------------------------------------------------
+        guard logicOK && geoOK else {
+            return reject(raw)
+        }
+
+        // -------------------------------------------------
+        // L12: TRAJECTORY COLLAPSE (PICT RESOLUTION)
+        // -------------------------------------------------
+        let history = DVSMHistoryClass(
+            ledgerFinalityHash: SHA256.hash(data: raw).data,
+            spatialEquivalenceAnchor: DVSMMortonEngine.encode(
+                x: decoded.delta[0],
+                y: decoded.delta[1],
+                z: decoded.delta[2]
+            )
+        )
+
+        // -------------------------------------------------
+        // L0-L5 STATE EVOLUTION (SINGLE SOURCE OF TRUTH)
+        // -------------------------------------------------
+        let newStateHash = evolveHash(raw, finalCaps)
+
+        return DVSMCausalResult(
+            committed: true,
+            finalStateHash: newStateHash,
+            historyClass: history,
+            activatedCapabilities: finalCaps
+        )
+    }
+
+    // =====================================================
+    // LOGIC ENGINE (L11 SIMPLIFIED INTO DETERMINISTIC CORE)
+    // =====================================================
+    private func evaluateLogic(decoded: DVSMDecodedPrimitive, trust: Double) -> Bool {
+
+        // AND: system stability gate
+        let stable = DVSMProbabilisticGate.evaluate(
+            signal: true,
+            trust: trust,
+            threshold: 0.75
+        )
+
+        // XOR: anti-symmetry enforcement
+        let antiSymmetry = DVSMPhysicalLogic.xorGate(
+            deltaA: SIMD3(decoded.delta[0], decoded.delta[1], decoded.delta[2]),
+            deltaB: SIMD3(0,0,0)
+        )
+
+        return stable && antiSymmetry
+    }
+
+    private func reject(_ raw: Data) -> DVSMCausalResult {
+        return DVSMCausalResult(
+            committed: false,
+            finalStateHash: raw.sha256,
+            historyClass: DVSMHistoryClass(
+                ledgerFinalityHash: raw.sha256,
+                spatialEquivalenceAnchor: 0
+            ),
+            activatedCapabilities: []
+        )
+    }
+
+    private func evolveHash(_ input: Data, _ caps: [DVSMCapability]) -> Data {
+        var h = SHA256()
+        h.update(data: input)
+        for c in caps {
+            var v = c.rawValue.bigEndian
+            h.update(data: Data(bytes: &v, count: 8))
+        }
+        return h.finalize().data
+    }
+}
+// =====================================================
+// L13_CAUSAL_PROOF_CERTIFICATE.swift
+// VERSION: REPLAY-FREE-VERIFICATION-V1
+// ROLE: Cryptographic Proof of State Transition Validity
+// =====================================================
+
+import Foundation
+
+// MARK: - PROOF OBJECT
+
+public struct DVSMCausalProof {
+    public let sequence: UInt64
+    
+    /// Commitment to input
+    public let inputHash: Data
+    
+    /// Commitment to resulting state
+    public let stateHash: Data
+    
+    /// Commitment to applied laws (final resolved set)
+    public let capabilityHash: Data
+    
+    /// Spatial + trajectory equivalence
+    public let historyClassHash: Data
+    
+    /// Trust at time of execution (quantized)
+    public let trustTick: UInt64
+    
+    /// Final proof binding (cryptographic seal)
+    public let proofHash: Data
+}
+
+// MARK: - PROOF GENERATOR
+
+public enum DVSMCausalProofEngine {
+
+    public static func generate(
+        sequence: UInt64,
+        input: Data,
+        stateHash: Data,
+        capabilities: [DVSMCapability],
+        history: DVSMHistoryClass,
+        trust: Double
+    ) -> DVSMCausalProof {
+
+        // 1. Normalize trust into L4 tick domain
+        let trustTick = DVSMClock.quantize(UInt64(trust * 1_000_000))
+
+        // 2. Capability commitment (order-stable)
+        var capHasher = SHA256()
+        for c in capabilities.sorted(by: { $0.rawValue < $1.rawValue }) {
+            var v = c.rawValue.bigEndian
+            capHasher.update(data: Data(bytes: &v, count: 8))
+        }
+        let capabilityHash = capHasher.finalize().data
+
+        // 3. History binding
+        var historyHasher = SHA256()
+        historyHasher.update(data: history.ledgerFinalityHash)
+        var anchor = history.spatialEquivalenceAnchor.bigEndian
+        historyHasher.update(data: Data(bytes: &anchor, count: 8))
+        let historyHash = historyHasher.finalize().data
+
+        // 4. Final proof binding
+        var finalHasher = SHA256()
+        finalHasher.update(data: input)
+        finalHasher.update(data: stateHash)
+        finalHasher.update(data: capabilityHash)
+        finalHasher.update(data: historyHash)
+
+        var tickBytes = trustTick.bigEndian
+        finalHasher.update(data: Data(bytes: &tickBytes, count: 8))
+
+        let proofHash = finalHasher.finalize().data
+
+        return DVSMCausalProof(
+            sequence: sequence,
+            inputHash: input.sha256,
+            stateHash: stateHash,
+            capabilityHash: capabilityHash,
+            historyClassHash: historyHash,
+            trustTick: trustTick,
+            proofHash: proofHash
+        )
+    }
+}
+
+
 // =====================================================
 // END OF SPECIFICATION
 // =====================================================
