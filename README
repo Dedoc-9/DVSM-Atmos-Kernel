@@ -32,179 +32,183 @@
 // Only the Kernel defines state.
 // All other layers constrain, transport, or observe — but never define truth.
 //
-// =====================================================
-// 🧠 SYSTEM SUMMARY
-// =====================================================
-//
-// DVSM is not a traditional application framework.
-//
-// It is a deterministic state machine that:
-//
-// - Converts input flux into irreversible state transitions
-// - Ensures identical inputs produce identical kernel traces
-// - Separates computation from observation and interpretation
-// - Eliminates timing, IO, and runtime dependency from truth logic
-//
-// The system is designed around a single invariant:
-//
-//     "Reality is the hash of state transitions, not time."
-//
-// =====================================================
-// 🧱 ARCHITECTURE OVERVIEW
-// =====================================================
-//
-// L1 — Kernel (Truth Engine)
-// -------------------------------------
-// The kernel is a pure deterministic transition function.
-//
-//   Input: DVSMFixedVector (validated flux)
-//   Output: DVSMCommitResult (hash + sequence)
-//
-// Properties:
-// - No IO
-// - No randomness
-// - No time dependency
-// - Constant-time execution (O(1))
-//
-// -------------------------------------
-//
-// L2 — Observer (Interpretation Layer)
-// -------------------------------------
-// Converts kernel outputs into semantic meaning.
-//
-// Responsibilities:
-// - Spectral analysis (optional)
-// - Audit logging (async)
-// - Geometry reconstruction
-// - Ghost-state forecasting (non-authoritative)
-//
-// Constraint:
-// NEVER influences kernel state.
-//
-// -------------------------------------
-//
-// L2.5 — Spectral Observer (Noise Deconstruction)
-// -------------------------------------
-// Diagnostic-only subsystem for signal classification.
-//
-// Functions:
-// - FFT-based or deterministic spectral fingerprinting
-// - Noise classification (stable, thermal, adversarial, drift)
-// - EMA smoothing for interpretive stability
-//
-// Constraint:
-// Observational ONLY — no causal influence.
-//
-// -------------------------------------
-//
-// L3 — SDK (Provenance Compiler)
-// -------------------------------------
-// Transforms raw external input into validated deterministic intent.
-//
-// Responsibilities:
-// - Cryptographic signing (Curve25519)
-// - Normalization of flux into fixed representation
-// - Version pinning of normalization logic
-// - Causal nonce generation (deterministic identity binding)
-//
-// Constraint:
-// Must fully sanitize untrusted input BEFORE kernel exposure.
-//
-// -------------------------------------
-//
-// L4 — Node (Execution Substrate)
-// -------------------------------------
-// Physical runtime layer controlling:
-//
-// - Tick clock (deterministic pulse cadence)
-// - Core affinity (kernel isolation)
-// - Ingress buffer (MRW policy)
-// - Observer dispatch (async fan-out)
-//
-// Constraint:
-// Kernel remains isolated from OS variability.
-//
-// -------------------------------------
-//
-// L5 — Causal Consistency Layer
-// -------------------------------------
-// Ensures distributed equivalence across DVSM nodes.
-//
-// Responsibilities:
-// - Merkle root validation
-// - Replay consistency
-// - Sequence integrity checks
-//
-// Constraint:
-// No mutation authority — only verification.
-//
-// -------------------------------------
-//
-// L6 — Formal Verification Layer
-// -------------------------------------
-// Defines system-wide impossibility conditions.
-//
-// Guarantees:
-// - No divergence under identical input
-// - No post-validation mutation
-// - No observer influence on kernel
-// - No causal reordering allowed
-//
-// DVSM is treated as a mathematically constrained system.
-//
-// =====================================================
-// ⚙️ CORE EXECUTION MODEL
-// =====================================================
-//
-// DVSM operates on a "Pulse" model:
-//
-//     Pulse(t):
-//         1. Ingest validated intent
-//         2. Apply deterministic law (DVSMLaw)
-//         3. Commit state transition
-//         4. Emit cryptographic hash
-//         5. Dispatch observers asynchronously
-//
-// Key property:
-// Time is not an input — sequence is.
-//
-// =====================================================
-// 🔐 DETECTION MODEL (BOILERPLATE EXAMPLE)
-// =====================================================
-//
-// Example kernel flow:
-//
-// let kernel = DVSMKernel(initial: DVSMBitBlock())
-//
-// let result = kernel.pulse(validatedFlux)
-//
-// print(result.hash)
-//
-// This produces:
-// - Deterministic state transition
-// - Sequence increment
-// - Cryptographic hash of new state
-//
-// No randomness exists in this process.
-//
-// =====================================================
-// 🧪 OBSERVATION PIPELINE (BOILERPLATE)
-// =====================================================
-//
-// let observer = DVMSpectralObserver()
-//
-// let result = observer.inspect(
-//     samples: signalBuffer,
-//     persistence: persistenceValue
-// )
-//
-// Result includes:
-// - spectralEnergy (normalized or fingerprinted)
-// - classification (stable / noise / adversarial / drift)
-//
-// IMPORTANT:
-// This does NOT affect kernel state.
-//
+=====================================================
+🧠 SYSTEM SUMMARY
+=====================================================
+
+DVSM is not a traditional application framework.
+
+It is a causally-closed deterministic execution system:
+
+- Converts input flux into irreversible state transitions
+- Ensures identical inputs produce identical kernel traces
+- Strictly separates truth, ingestion, execution, and observation
+- Eliminates timing, IO, and runtime dependency from truth logic
+
+The system is designed around a single invariant:
+
+    "Reality is the hash of state transitions, not time."
+
+=====================================================
+🧱 ARCHITECTURE OVERVIEW (CAUSAL HIERARCHY MODEL)
+=====================================================
+
+L1 — Kernel (Truth Engine)
+-------------------------------------
+The kernel is a pure deterministic transition function.
+
+Input: DVSMValidatedIntent
+Output: DVSMCommitResult (hash + sequence)
+
+Properties:
+- No IO
+- No randomness
+- No time dependency
+- Constant-time execution (O(1))
+
+Constraint:
+Only L3-validated inputs may reach L1.
+
+-------------------------------------
+
+L2 — Observer (Interpretation Layer)
+-------------------------------------
+Non-authoritative projection of kernel outputs into semantic meaning.
+
+Responsibilities:
+- Spectral analysis (optional)
+- Audit logging (async)
+- Geometry reconstruction
+- Ghost-state forecasting (non-causal)
+
+Constraint:
+NEVER influences kernel state.
+
+-------------------------------------
+
+L2.5 — Spectral Observer (Noise Deconstruction)
+-------------------------------------
+Diagnostic-only subsystem for signal classification.
+
+Functions:
+- FFT-based or deterministic spectral fingerprinting
+- Noise classification (stable, thermal, adversarial, drift)
+- EMA smoothing for interpretive stability
+
+Constraint:
+Observational ONLY — no causal influence on L1–L4.
+
+-------------------------------------
+
+L3 — SDK (Provenance Compiler)
+-------------------------------------
+Transforms raw external input into validated deterministic intent.
+
+Responsibilities:
+- Cryptographic signing (Curve25519)
+- Normalization of flux into fixed representation
+- Version pinning of normalization logic
+- Causal nonce generation (deterministic identity binding)
+
+Constraint:
+Must fully sanitize untrusted input BEFORE kernel exposure.
+
+-------------------------------------
+
+L4 — Node (Execution Substrate)
+-------------------------------------
+Physical runtime layer controlling execution behavior.
+
+Responsibilities:
+- Tick clock (deterministic pulse cadence)
+- Core affinity (kernel isolation)
+- Ingress buffer (MRW policy)
+- Observer dispatch (async fan-out)
+- Thread scheduling for L3 smelting and L1 invocation
+
+Constraint:
+Kernel remains isolated from OS variability and scheduling noise.
+
+-------------------------------------
+
+L5 — Causal Consistency Layer
+-------------------------------------
+Ensures distributed equivalence across DVSM nodes.
+
+Responsibilities:
+- Merkle root validation
+- Replay consistency
+- Sequence integrity checks
+
+Constraint:
+Verification-only layer — no mutation authority and no influence on kernel state.
+
+-------------------------------------
+
+L6 — Formal Verification Layer
+-------------------------------------
+Defines system-wide impossibility conditions.
+
+Guarantees:
+- No divergence under identical input
+- No post-validation mutation
+- No observer influence on kernel
+- No causal reordering allowed
+
+DVSM is treated as a mathematically constrained system.
+
+=====================================================
+⚙️ CORE EXECUTION MODEL
+=====================================================
+
+DVSM operates on a "Pulse" model:
+
+    Pulse(t):
+        1. Ingest validated intent (L3)
+        2. Apply deterministic law (L1 Kernel)
+        3. Commit state transition
+        4. Emit cryptographic hash
+        5. Dispatch observers asynchronously (L2 / L2.5)
+
+Key property:
+Time is not an input — sequence is.
+
+=====================================================
+🔐 DETECTION MODEL (BOILERPLATE EXAMPLE)
+=====================================================
+
+Example kernel flow:
+
+let kernel = DVSMKernel(initial: DVSMBitBlock())
+
+let result = kernel.pulse(validatedFlux)
+
+print(result.hash)
+
+This produces:
+- Deterministic state transition
+- Sequence increment
+- Cryptographic hash of new state
+
+No randomness exists in this process.
+
+=====================================================
+🧪 OBSERVATION PIPELINE (BOILERPLATE)
+=====================================================
+
+let observer = DVMSpectralObserver()
+
+let result = observer.inspect(
+    samples: signalBuffer,
+    persistence: persistenceValue
+)
+
+Result includes:
+- spectralEnergy (normalized or fingerprinted)
+- classification (stable / noise / adversarial / drift)
+
+IMPORTANT:
+This does NOT affect kernel state.
 // =====================================================
 // 🌐 DISTRIBUTED BEHAVIOR
 // =====================================================
