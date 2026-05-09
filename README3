@@ -429,6 +429,8 @@ Where:
 ## END OF SECTION 12
 
 ---
+# 13. Notes
+
         Logical Layer (Rust)
    --------------------------------
    - validates inputs
@@ -445,9 +447,22 @@ Where:
    - enforces ordering
    - isolates hardware effects
 
+# Philosophical / symbolic framing
+
+These are not literal engineering constructs:
+
+“reality is the hash of state transitions”
+“causal closure”
+“truth engine”
+“impossibility layer”
+“existence validation”
+
+They function as:
+formal metaphors for invariants and system constraints
+
 ---
 
-# 13 FINAL STATEMENT
+# 14 FINAL STATEMENT
 
 DVSM is not a framework.
 
