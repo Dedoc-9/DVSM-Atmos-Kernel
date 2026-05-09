@@ -220,7 +220,7 @@ The evolution can be summarized as:
 // DOCUMENT ID: DVSM-ADD-2024-V1.1
 // STATUS: Formal Addendum (Binding Model Completion)
 // PURPOSE: Resolve execution coupling and enforce closure.
-//
+// MEANING: Semantic glue making the Rust + C++ split logically consistent
 // =====================================================
 
 import Foundation
