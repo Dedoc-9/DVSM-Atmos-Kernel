@@ -648,3 +648,176 @@ public struct DVSMLogicCircuit {
 // All layers are evaluated.
 //
 // =====================================================
+// DVSM_LOGIC_CIRCUIT_CORE.swift
+// VERSION: ATOMOS-LOGIC-GATE-V1
+// ROLE:
+// Final execution + verification collapse layer.
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// 1. LOGIC STATE ENUM
+// =====================================================
+
+public enum DVSMLogicState {
+    case accept
+    case reject
+    case uncertain
+    case requiresReconciliation
+}
+
+// =====================================================
+// 2. NET GATE (FINAL COLLAPSE FUNCTION)
+// =====================================================
+
+public enum DVSMNetGate {
+
+    public static func evaluate(
+        rustTraceHash: Data,
+        wasmTraceHash: Data,
+        hardwareAttestationHash: Data,
+        divergenceIndex: Double
+    ) -> DVSMLogicState {
+
+        // ---------------------------------------------
+        // GATE 1: HARDWARE WITNESS CHECK
+        // ---------------------------------------------
+
+        let hwValid =
+            hardwareAttestationHash.count == 32
+
+        guard hwValid else {
+            return .reject
+        }
+
+        // ---------------------------------------------
+        // GATE 2: CROSS-RUNTIME AGREEMENT
+        // ---------------------------------------------
+
+        let runtimeAgreement =
+            rustTraceHash == wasmTraceHash
+
+        // ---------------------------------------------
+        // GATE 3: DIVERGENCE THRESHOLD MODEL
+        // ---------------------------------------------
+
+        if divergenceIndex > 0.25 {
+            return .requiresReconciliation
+        }
+
+        // ---------------------------------------------
+        // GATE 4: FINAL CONSENSUS COLLAPSE
+        // ---------------------------------------------
+
+        if runtimeAgreement && divergenceIndex <= 0.25 {
+            return .accept
+        }
+
+        return .uncertain
+    }
+}
+
+// =====================================================
+// 3. LOGIC CIRCUIT (FULL SYSTEM COLLAPSE ENGINE)
+// =====================================================
+
+public final class DVSMLogicCircuit {
+
+    public struct Input {
+
+        public let rustTrace: Data
+        public let wasmTrace: Data
+        public let hardwareProof: Data
+        public let divergenceIndex: Double
+    }
+
+    public struct Output {
+
+        public let state: DVSMLogicState
+        public let canonicalHash: Data
+        public let forensicPayload: Data
+    }
+
+    // ---------------------------------------------
+    // MAIN EXECUTION ENTRYPOINT
+    // ---------------------------------------------
+
+    public static func execute(_ input: Input) -> Output {
+
+        // -----------------------------------------
+        // STEP 1: HASH NORMALIZATION
+        // -----------------------------------------
+
+        let canonicalHash =
+            SHA256.hash(
+                data:
+                    input.rustTrace +
+                    input.wasmTrace +
+                    input.hardwareProof
+            )
+
+        let hashData = Data(canonicalHash)
+
+        // -----------------------------------------
+        // STEP 2: NET GATE EVALUATION
+        // -----------------------------------------
+
+        let state =
+            DVSMNetGate.evaluate(
+                rustTraceHash: input.rustTrace,
+                wasmTraceHash: input.wasmTrace,
+                hardwareAttestationHash: input.hardwareProof,
+                divergenceIndex: input.divergenceIndex
+            )
+
+        // -----------------------------------------
+        // STEP 3: FORENSIC PACKAGING
+        // -----------------------------------------
+
+        let forensic =
+            DVSMForensicEncoder.encode(
+                rust: input.rustTrace,
+                wasm: input.wasmTrace,
+                hw: input.hardwareProof,
+                divergence: input.divergenceIndex
+            )
+
+        return Output(
+            state: state,
+            canonicalHash: hashData,
+            forensicPayload: forensic
+        )
+    }
+}
+
+// =====================================================
+// 4. FORENSIC ENCODER (ANTI-CHEAT / NOISE BREAKDOWN)
+// =====================================================
+
+public enum DVSMForensicEncoder {
+
+    public static func encode(
+        rust: Data,
+        wasm: Data,
+        hw: Data,
+        divergence: Double
+    ) -> Data {
+
+        var buffer = Data()
+
+        buffer.append(rust)
+        buffer.append(wasm)
+        buffer.append(hw)
+
+        var divergenceBits = withUnsafeBytes(of: divergence.bitPattern.bigEndian) {
+            Data($0)
+        }
+
+        buffer.append(divergenceBits)
+
+        return Data(SHA256.hash(data: buffer))
+    }
+}
+// =====================================================
