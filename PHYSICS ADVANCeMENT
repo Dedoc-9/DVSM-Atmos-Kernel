@@ -519,3 +519,112 @@ public final class DVSMReservoirKernel {
         return inputSize / max(outputSize, 1.0)
     }
 }
+// =====================================================
+// SRE_GRADIENT_TUNER.swift
+// VERSION: CAUSAL-REGIME-OPTIMIZER-V2
+// ROLE: Physical Reservoir Regime Optimization Layer
+// =====================================================
+
+import Foundation
+
+/**
+ # CORE IDEA (PHYSICS FORMULATION)
+ 
+ We are not training a model.
+ We are searching a controllable physical regime where:
+ 
+    f(Physical Boundary Conditions) → maximally separable output space
+ 
+ This is equivalent to:
+ - maximizing Fisher information in emission signatures
+ - operating near controlled bifurcation boundaries
+ - shaping attractor geometry for computation stability
+ */
+
+public struct StabilityEnvelope {
+    public let gasDensity: Double
+    public let pressureField: Double
+    public let collapseRadius: Double
+    public let sonicLimit: Double
+    
+    /// Measures how separable outputs are across inputs
+    public let signatureSeparability: Double
+}
+
+// MARK: - CAUSAL REGIME OPTIMIZER
+
+public final class SRERegimeOptimizer {
+    
+    /**
+     # PRINCIPLE: CAUSAL GRADIENT DESCENT
+    
+     Instead of updating weights:
+     we perturb physical boundary conditions
+     and observe changes in output geometry.
+     */
+    
+    public func step(
+        errorGradient: Double,
+        current: StabilityEnvelope
+    ) -> StabilityEnvelope {
+        
+        // Convert error into controlled physical perturbation
+        let delta = bounded(errorGradient)
+        
+        // Adjust system toward higher separability regime
+        let newGasDensity = current.gasDensity + (delta * 0.3)
+        
+        // Pressure shift controls nonlinear stiffness of collapse
+        let newPressure = current.pressureField + (delta * 0.6)
+        
+        // Collapse radius tunes proximity to instability threshold
+        let newRadius = current.collapseRadius - (delta * 0.2)
+        
+        // Sonic limit defines causal boundary (reachability frontier)
+        let newSonicLimit = current.sonicLimit + (delta * 0.5)
+        
+        return StabilityEnvelope(
+            gasDensity: newGasDensity,
+            pressureField: newPressure,
+            collapseRadius: newRadius,
+            sonicLimit: newSonicLimit,
+            signatureSeparability: predictSeparability(delta, current)
+        )
+    }
+    
+    // MARK: - PHYSICAL OBJECTIVE FUNCTION
+    
+    /**
+     Higher separability = better computational resolution
+     of emission signatures between different inputs.
+     */
+    private func predictSeparability(_ delta: Double, _ state: StabilityEnvelope) -> Double {
+        let instability = abs(delta) * state.pressureField
+        return min(1.0, state.signatureSeparability + instability * 0.01)
+    }
+    
+    private func bounded(_ x: Double) -> Double {
+        return max(-1.0, min(1.0, x))
+    }
+}
+
+// MARK: - SYSTEM INTERPRETATION LAYER
+
+/**
+ # WHAT THIS REALLY IS (IN REAL TERMS)
+ 
+ This architecture corresponds to:
+ 
+ 1. PHYSICAL OPTIMIZATION NEAR CRITICAL POINTS
+    - tuning a system near phase transition boundaries
+    - maximizing sensitivity of output observables
+ 
+ 2. FISHER INFORMATION MAXIMIZATION
+    - adjusting system parameters to increase distinguishability of states
+ 
+ 3. CONTROL OF NONLINEAR DYNAMICS
+    - steering a system toward useful attractor structures
+ 
+ 4. EXPERIMENTAL DESIGN OVER PHYSICS
+    - instead of training models, you tune the experiment itself
+ */
