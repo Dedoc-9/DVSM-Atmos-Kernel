@@ -1,0 +1,62 @@
+// =====================================================
+// DVSM — ATOMOS AUTHORITY
+// FILE: dvsm_atomos_authority.rs
+// STATUS: TERMINAL LOGICAL CLOSURE [SEALED]
+// =====================================================
+
+use sha2::{Sha256, Digest};
+
+#[repr(C)]
+pub struct DVSMBitBlock { pub data: [u8; 64] }
+
+#[repr(C)]
+pub struct DVSMValidatedIntent {
+    pub flux: DVSMBitBlock,
+    pub author_key: [u8; 32],
+    pub shard_nonce: u64,
+    pub integrity_hash: [u8; 32],
+}
+
+#[repr(C)]
+pub struct DVSMCommitResult {
+    pub state_hash: [u8; 32],
+    pub sequence: u64,
+}
+
+pub struct DVSMKernel {
+    state: DVSMBitBlock,
+    sequence: u64,
+}
+
+impl DVSMKernel {
+    pub fn pulse(&mut self, intent: &DVSMValidatedIntent) -> DVSMCommitResult {
+        // AXIOM: The ONLY place sequence is generated or incremented.
+        self.sequence = self.sequence.checked_add(1).expect("Causal Overflow");
+        
+        for i in 0..64 { self.state.data[i] ^= intent.flux.data[i]; }
+
+        let mut hasher = Sha256::new();
+        hasher.update(&self.state.data);
+        hasher.update(&self.sequence.to_le_bytes());
+        
+        DVSMCommitResult { state_hash: hasher.finalize().into(), sequence: self.sequence }
+    }
+}
+
+// --- FFI EXPLICIT OWNERSHIP CONTRACT ---
+#[no_mangle]
+pub extern "C" fn dvsm_kernel_create() -> *mut DVSMKernel {
+    Box::into_raw(Box::new(DVSMKernel { state: DVSMBitBlock { data: [0; 64] }, sequence: 0 }))
+}
+
+#[no_mangle]
+pub extern "C" fn dvsm_kernel_destroy(k: *mut DVSMKernel) {
+    if !k.is_null() { unsafe { drop(Box::from_raw(k)); } }
+}
+
+#[no_mangle]
+pub extern "C" fn dvsm_kernel_pulse(k: *mut DVSMKernel, i: *const DVSMValidatedIntent) -> DVSMCommitResult {
+    let kernel = unsafe { &mut *k };
+    let intent = unsafe { &*i };
+    kernel.pulse(intent)
+}
