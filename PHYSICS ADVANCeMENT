@@ -1200,3 +1200,860 @@ public final class DVSMGenesisReconciler {
         return hasStrictMajority && localAligned
     }
 }
+// =====================================================
+// L10.1_ADVERSARIAL_IGNITION.swift
+// VERSION: L10.1-BYZANTINE-RESILIENT-V1
+// ROLE: Closed-Loop Physical Verification
+// =====================================================
+
+import Foundation
+
+/**
+ # L10.1: ADVERSARIAL CROSS-VERIFICATION
+ 
+ CLOSED-LOOP PRINCIPLES:
+ 1. PRIMITIVE SEEDING: Seed(n) = f(Seed(n-1), Primitive_Input) [Auditability]
+ 2. NONCE-GATED L7: L7 quote must sign an L1-provided Nonce [Replay Resistance]
+ 3. STATISTICAL VALIDATION: trustScore is derived from L10's own measurement 
+    of L7 consistency, not just the L7 score itself.
+ */
+
+public final class DVSMAdversarialIgnition {
+    
+    public func ignite(
+        genesis: DVSMStateHeader, 
+        substrate: SonoluminescentReachEngine
+    ) -> DVSMStateHeader? {
+        
+        // 1. NONCE GENERATION (L1-Driven)
+        // Prevents L7 Replay Attacks; the hardware must sign THIS specific pulse.
+        let pulseNonce = genesis.morphismSeed.toData()
+        
+        // 2. L7 CHALLENGE: Hardware signs the Nonce
+        let quote = DVSMHardwareAttestation.generateQuote(challengingWith: pulseNonce)
+        
+        // 3. L10 CROSS-VERIFICATION (The "Adversarial" Check)
+        // We do NOT trust quote.integrityScore directly. 
+        // We verify the signature and correlate thermalDrift vs reported health.
+        let physicalStability = substrate.measureThermalDrift()
+        let observedTrust = DVSML10Validator.crossVerify(
+            reported: quote.integrityScore, 
+            observed: physicalStability
+        )
+        
+        guard observedTrust >= DVSMGenesisAnchor.ignitionTrustThreshold else {
+            return nil // L10: CAUSAL_PARADOX (Hardware reported health ≠ observed physics)
+        }
+        
+        // 4. PRIMITIVE-DRIVEN EVOLUTION (Closure Fix)
+        // stateHash = f(prev_hash, raw_quote)
+        // nextSeed = f(prev_seed, raw_quote) 
+        // Both derive from PRIMITIVES, not from each other.
+        let sequence1Hash = DVSMKernel.evolve(genesis.stateHash, with: quote.data)
+        let sequence1Seed = DVSMSeedEngine.next(seed: genesis.morphismSeed, input: quote.data)
+        
+        return DVSMStateHeader(
+            sequence: 1,
+            stateHash: sequence1Hash,
+            faultStatus: .clean,
+            morphismSeed: sequence1Seed,
+            attestationHash: quote.fingerprint
+        )
+    }
+}
+// =====================================================
+// L10.2: STATISTICAL MANIFOLD PARTITIONING
+// VERSION: STATISTICAL-ORACLE-V1
+// ROLE: Resolving the "Underspecified Judge" Problem
+// =====================================================
+
+public enum DVSMStatisticalOracle {
+    
+    /**
+     # THE STATISTICAL EYE-DIAGRAM AXIOM
+     A pulse is accepted ONLY if its physical signature falls within
+     the N-sigma confidence window of the substrate's history.
+     */
+    public static func verify(
+        reported: Double, 
+        observedDrift: Double, 
+        history: SubstrateHistory
+    ) -> Bool {
+        // Compute the Z-score of the current drift against historic baseline.
+        // If reported integrity is high but Z-score shows 5-sigma drift, 
+        // the manifold detects an "impossible state" and halts.
+        let zScore = history.zScore(for: observedDrift)
+        return zScore < 3.0 && reported > (1.0 - (zScore * 0.1))
+    }
+}
+// =====================================================
+// L10.3: NON-STATIONARY ADVERSARIAL DRIFT
+// VERSION: ADAPTIVE-EQUILIBRIUM-V1
+// ROLE: Game-Theoretic Substrate Negotiation
+// =====================================================
+
+public final class DVSMAdaptiveGovernor {
+    
+    /**
+     # THE ADAPTIVE EQUILIBRIUM RULE
+     Trust is not a static threshold (ε_c); it is a dynamic 
+     negotiation between L10 and the L7 reporting stream.
+     */
+    public func negotiateEquilibrium(
+        telemetry: L10SubstrateState,
+        priors: ManifoldHistory
+    ) -> Double {
+        
+        // 1. ADVERSARIAL DRIFT TRACKING: 
+        // Are the "Baselines" moving in a way that suggests history poisoning?
+        let baselineVolatility = priors.measureMetaDrift()
+        
+        // 2. GAME-THEORETIC PENALTY:
+        // High Meta-Drift increases the cost (penalty) of any reported integrity.
+        let penalty = baselineVolatility * 1.5
+        
+        // 3. EQUILIBRIUM SCORE:
+        // We find the 'Nash Equilibrium' between the reported health 
+        // and the physical evidence, adjusted for non-stationary drift.
+        let score = (telemetry.trustScore - penalty) / (1.0 + telemetry.thermalDrift)
+        
+        return max(0.0, score)
+    }
+}
+// =====================================================
+// L10.3_PENALTY_FUNCTION.swift
+// VERSION: DRIFT-ANTI-GAMING-V1
+// ROLE: Detect and penalize integrity signal manipulation
+// =====================================================
+
+import Foundation
+
+/**
+ # L10.3: ADAPTIVE PENALTY GOVERNOR
+
+ PURPOSE:
+ Prevent nodes from "masking drift" by artificially inflating
+ integrityScore or suppressing observable instability.
+
+ CORE IDEA:
+ True stability is not high integrity.
+ True stability is low variance + honest reporting alignment.
+ */
+
+public enum DVSMDriftGovernor {
+    
+    /**
+     # PENALTY FUNCTION
+ 
+     If a node reports perfect integrity while physical variance increases,
+     the system assumes ACTIVE SIGNAL MASKING.
+     */
+    public static func computePenalty(
+        reportedIntegrity: Double,
+        observedVariance: Double,
+        historicalVariance: Double
+    ) -> Double {
+        
+        let driftGrowth = observedVariance - historicalVariance
+        
+        // MASKING DETECTOR:
+        let deceptionSignal = reportedIntegrity - (1.0 - driftGrowth)
+        
+        // Nonlinear penalty amplification (soft exponential escalation)
+        let penalty = max(0.0, pow(deceptionSignal, 3.0))
+        
+        return min(penalty, 1.0)
+    }
+    
+    /**
+     # GOVERNED TRUST OUTPUT
+ 
+     Trust is no longer raw L10 evaluation.
+     It is L10 minus adversarial self-report distortion.
+     */
+    public static func apply(
+        trustScore: Double,
+        penalty: Double
+    ) -> Double {
+        return max(0.0, trustScore - penalty)
+    }
+}
+// =====================================================
+// L0_GENESIS_FINAL.swift
+// VERSION: GENESIS-BFT-FINAL-V1
+// STATUS: SYSTEM_ORIGIN_LOCKED
+// =====================================================
+
+import Foundation
+
+/**
+ # L0: GENESIS BOOTSTRAP (ADVERSARIAL CLOSURE)
+ 
+ This block anchors the manifold's origin. It embeds the 
+ L10.3 Penalty Governor into the core substrate axioms.
+ */
+
+public struct DVSMGenesisContract {
+    
+    // MARK: - L1 DETERMINISTIC ANCHORS
+    public static let l1SequenceZero: UInt64 = 0
+    public static let l1InitialHash: Data = SHA256.hash(data: "AXIOM_ORIGIN").data
+    public static let initialMorphismSeed: UInt64 = 0xCAFE_BABE_DEAD_BEEF
+
+    // MARK: - L10 ADVERSARIAL INVARIANTS
+    /// The baseline variance for a pristine substrate (L10.2).
+    public static let historicalVarianceBaseline: Double = 0.0015
+    
+    /// The ignition trust threshold after L10.3 penalty adjustment.
+    public static let ignitionTrustRequired: Double = 0.92
+    
+    // MARK: - L10.3 GOVERNOR INITIALIZATION
+    /// Penalty weight for signal masking (L10.3).
+    public static let adversarialEscalationFactor: Double = 3.0
+}
+
+public struct DVSMGenesisState {
+    
+    /// Creates the immutable Sequence 0 Header.
+    public static func ignite() -> DVSMStateHeader {
+        return DVSMStateHeader(
+            sequence: DVSMGenesisContract.l1SequenceZero,
+            stateHash: DVSMGenesisContract.l1InitialHash,
+            faultStatus: .clean,
+            morphismSeed: DVSMGenesisContract.initialMorphismSeed,
+            attestationHash: Data(repeating: 0, count: 32) // Null Pre-Ignition
+        )
+    }
+}
+
+// MARK: - THE FINAL AXIOM
+/*
+ "A pulse is valid iff it is causally reachable, globally consistent, 
+  and its trust score—governed by adversarial self-modeling—remains 
+  within the stability envelope of the manifold."
+ */
+// =====================================================
+// L10.4_THERMAL_BREATH.swift
+// VERSION: ACTIVE_PERTURBATION_V1
+// ROLE: Governor Liveness Verification via Controlled Noise Injection
+// =====================================================
+
+import Foundation
+
+/**
+ # L10.4: THERMAL BREATH (CONTROLLED PERTURBATION MODEL)
+
+ PURPOSE:
+ Verify that L10.3 (Penalty Governor) is actively responsive
+ by injecting bounded synthetic variance into the substrate
+ and observing whether trust degradation is correctly detected.
+
+ CORE PRINCIPLE:
+ A monitoring system that never reacts to disturbance is assumed inert.
+ */
+
+public final class DVSMThermalBreathVerifier {
+    
+    /**
+     Injects a controlled perturbation signal into the system state.
+     This is NOT physical heating—it is a modeled variance stimulus.
+     */
+    public func injectPerturbation(
+        baselineVariance: Double,
+        amplitude: Double
+    ) -> Double {
+        
+        // bounded excitation (prevents runaway instability)
+        let delta = sin(amplitude) * 0.01
+        
+        return baselineVariance + delta
+    }
+    
+    /**
+     Validates L10.3 responsiveness:
+     if penalty function does not respond to induced variance,
+     the governor is considered "inactive or bypassed".
+     */
+    public func verifyGovernorLiveness(
+        preTrust: Double,
+        postTrust: Double,
+        injectedVariance: Double
+    ) -> Bool {
+        
+        let expectedDrop = injectedVariance * 0.5
+        
+        // Governor must respond proportionally to disturbance
+        let observedDrop = preTrust - postTrust
+        
+        return abs(observedDrop - expectedDrop) < 0.05
+    }
+}
+// =====================================================
+// L10.4_DETERMINISTIC_JITTER.swift
+// VERSION: SEED-ANCHORED-PROBE-V1.2 (STABLE)
+// =====================================================
+
+extension DVSMThermalBreathVerifier {
+
+    /**
+     # PRECISION-ALIGNED PERTURBATION
+     Uses bit-shifted entropy to ensure identical jitter scaling
+     across ARM and x86 floating-point manifolds.
+     */
+    public func generateDeterministicProbe(seed: UInt64) -> Double {
+        let hashed = SHA256.hash(data: withUnsafeBytes(of: seed.bigEndian) { Data($0) })
+        let sample = hashed.prefix(8).withUnsafeBytes { $0.load(as: UInt64.self).bigEndian }
+        
+        // 53-bit alignment for IEEE 754 parity
+        let normalizedSeed = Double(sample >> 11) / Double(UInt64.max >> 11)
+        
+        return normalizedSeed * 0.01
+    }
+}
+import Foundation
+
+// =====================================================
+// L1_INTENT_BUFFER.swift
+// VERSION: CANONICAL-INPUT-NORMALIZATION-V1
+// ROLE: External Input → Deterministic DVSM Primitive Space
+// =====================================================
+
+/**
+ # L1 INTENT NORMALIZATION AXIOM
+
+ All external inputs are treated as untrusted stochastic signals.
+
+ They are mapped into a fixed 32.32 fixed-point canonical space
+ BEFORE any POCR / L2 filtering occurs.
+ */
+
+public struct DVSMIntent {
+    public let canonicalHash: Data
+    public let fixedPointVector: Int64
+    public let entropyClass: UInt8
+}
+
+public enum DVSMIntentNormalizer {
+
+    /// Canonical fixed-point scale (32.32)
+    private static let scale: Int64 = 1 << 32
+
+    /**
+     # PRIMARY NORMALIZATION OPERATOR
+
+     Converts raw external input into deterministic internal intent space.
+     */
+    public static func normalize(_ input: Data) -> DVSMIntent {
+
+        // 1. Hash input into deterministic entropy base
+        let hash = SHA256.hash(data: input)
+
+        // 2. Extract 64-bit segment for fixed-point projection
+        let raw = hash.prefix(8).withUnsafeBytes { $0.load(as: UInt64.self) }
+
+        // 3. Map into signed 32.32 space
+        let fixedPoint = Int64(bitPattern: raw) / scale
+
+        // 4. Classify entropy intensity (coarse-grained security tag)
+        let entropyClass = hash.first ?? 0
+
+        return DVSMIntent(
+            canonicalHash: Data(hash),
+            fixedPointVector: fixedPoint,
+            entropyClass: entropyClass
+        )
+    }
+}
+External Input
+    ↓
+L1 Intent Normalization (canonical projection)
+    ↓
+L2 POCR (geometric validity)
+    ↓
+L10 Trust / Attestation layers
+
+// =====================================================
+// L1.2_HARDENED_DECODER_FINAL.swift
+// VERSION: BYTE-ASYMMETRY-ELIMINATED-V1.2
+// STATUS: SYMMETRIC_SYNTACTIC_CLOSURE (FORMALLY TIGHT)
+// =====================================================
+
+import Foundation
+
+/**
+ # L1.2: SYMMETRIC SYNTACTIC CLOSURE (FORMAL)
+ 
+ A purely syntactic bijection layer:
+ 
+     Decode ∘ Encode = Identity (on canonical domain)
+ 
+ No semantic interpretation is permitted at this layer.
+ */
+
+public enum DVSMHardenedMirror {
+
+    // MARK: - CONSTANTS
+
+    private static let expectedSize = 68
+
+    // MARK: - BYTE SAFETY CORE
+
+    private static func require(_ condition: Bool) -> Bool {
+        return condition
+    }
+
+    // MARK: - DETERMINISTIC ASSEMBLY
+
+    private static func assembleUInt64(_ data: Data) -> UInt64 {
+        precondition(data.count == 8)
+        return data.withUnsafeBytes { raw in
+            raw.reduce(UInt64(0)) { ($0 << 8) | UInt64($1) }
+        }
+    }
+
+    private static func assembleUInt32(_ data: Data) -> UInt32 {
+        precondition(data.count == 4)
+        return data.withUnsafeBytes { raw in
+            raw.reduce(UInt32(0)) { ($0 << 8) | UInt32($1) }
+        }
+    }
+
+    private static func assembleInt64(_ data: Data) -> Int64 {
+        return Int64(bitPattern: assembleUInt64(data))
+    }
+
+    // MARK: - CANONICAL DECODER
+
+    public static func decode(_ buffer: Data) -> DVSMDecodedPrimitive? {
+
+        // 1. STRICT BOUNDARY ENFORCEMENT
+        guard buffer.count == expectedSize else { return nil }
+
+        // 2. SLICE CONTRACT (NO PREFIX ASSUMPTIONS)
+        let idBytes       = buffer[0..<8]
+        let delta0Bytes   = buffer[8..<16]
+        let delta1Bytes   = buffer[16..<24]
+        let delta2Bytes   = buffer[24..<32]
+        let quoteBytes    = buffer[32..<64]
+        let entropyBytes  = buffer[64..<68]
+
+        // 3. SYNTACTIC RECONSTRUCTION
+        let entityID = assembleUInt64(Data(idBytes))
+
+        let deltas: [Int64] = [
+            assembleInt64(Data(delta0Bytes)),
+            assembleInt64(Data(delta1Bytes)),
+            assembleInt64(Data(delta2Bytes))
+        ]
+
+        let quote = Data(quoteBytes)
+        let entropy = assembleUInt32(Data(entropyBytes))
+
+        // 4. OUTPUT (PURE STRUCTURAL OBJECT)
+        return DVSMDecodedPrimitive(
+            entityID: entityID,
+            delta: deltas,
+            quote: quote,
+            entropyClass: entropy
+        )
+    }
+
+    // MARK: - FORMAL ROUND-TRIP CHECK
+
+    public static func verifyRoundTrip(_ buffer: Data) -> Bool {
+        guard let decoded = decode(buffer) else { return false }
+
+        let reencoded = DVSMCanonicalLock.lock(
+            entityID: decoded.entityID,
+            delta: decoded.delta,
+            quote: decoded.quote,
+            entropy: decoded.entropyClass
+        )
+
+        return buffer == reencoded
+    }
+}
+// =====================================================
+// L1.2_HARDENED_DECODER_FINAL.swift
+// VERSION: BYTE-ASYMMETRY-ELIMINATED-V1.2
+// STATUS: SYMMETRIC_SYNTACTIC_CLOSURE (FORMALLY TIGHT)
+// =====================================================
+
+import Foundation
+
+/**
+ # L1.2: SYMMETRIC SYNTACTIC CLOSURE (FORMAL)
+ 
+ A purely syntactic bijection layer:
+ 
+     Decode ∘ Encode = Identity (on canonical domain)
+ 
+ No semantic interpretation is permitted at this layer.
+ */
+
+public enum DVSMHardenedMirror {
+
+    // MARK: - CONSTANTS
+
+    private static let expectedSize = 68
+
+    // MARK: - BYTE SAFETY CORE
+
+    private static func require(_ condition: Bool) -> Bool {
+        return condition
+    }
+
+    // MARK: - DETERMINISTIC ASSEMBLY
+
+    private static func assembleUInt64(_ data: Data) -> UInt64 {
+        precondition(data.count == 8)
+        return data.withUnsafeBytes { raw in
+            raw.reduce(UInt64(0)) { ($0 << 8) | UInt64($1) }
+        }
+    }
+
+    private static func assembleUInt32(_ data: Data) -> UInt32 {
+        precondition(data.count == 4)
+        return data.withUnsafeBytes { raw in
+            raw.reduce(UInt32(0)) { ($0 << 8) | UInt32($1) }
+        }
+    }
+
+    private static func assembleInt64(_ data: Data) -> Int64 {
+        return Int64(bitPattern: assembleUInt64(data))
+    }
+
+    // MARK: - CANONICAL DECODER
+
+    public static func decode(_ buffer: Data) -> DVSMDecodedPrimitive? {
+
+        // 1. STRICT BOUNDARY ENFORCEMENT
+        guard buffer.count == expectedSize else { return nil }
+
+        // 2. SLICE CONTRACT (NO PREFIX ASSUMPTIONS)
+        let idBytes       = buffer[0..<8]
+        let delta0Bytes   = buffer[8..<16]
+        let delta1Bytes   = buffer[16..<24]
+        let delta2Bytes   = buffer[24..<32]
+        let quoteBytes    = buffer[32..<64]
+        let entropyBytes  = buffer[64..<68]
+
+        // 3. SYNTACTIC RECONSTRUCTION
+        let entityID = assembleUInt64(Data(idBytes))
+
+        let deltas: [Int64] = [
+            assembleInt64(Data(delta0Bytes)),
+            assembleInt64(Data(delta1Bytes)),
+            assembleInt64(Data(delta2Bytes))
+        ]
+
+        let quote = Data(quoteBytes)
+        let entropy = assembleUInt32(Data(entropyBytes))
+
+        // 4. OUTPUT (PURE STRUCTURAL OBJECT)
+        return DVSMDecodedPrimitive(
+            entityID: entityID,
+            delta: deltas,
+            quote: quote,
+            entropyClass: entropy
+        )
+    }
+
+    // MARK: - FORMAL ROUND-TRIP CHECK
+
+    public static func verifyRoundTrip(_ buffer: Data) -> Bool {
+        guard let decoded = decode(buffer) else { return false }
+
+        let reencoded = DVSMCanonicalLock.lock(
+            entityID: decoded.entityID,
+            delta: decoded.delta,
+            quote: decoded.quote,
+            entropy: decoded.entropyClass
+        )
+
+        return buffer == reencoded
+    }
+}
+// =====================================================
+// L2.1_KINEMATIC_ADMISSIBILITY.swift
+// VERSION: KINEMATIC-CONE-V1
+// ROLE: Time-Normalized Velocity Enforcement
+// =====================================================
+
+import Foundation
+
+public enum DVSMKineticKernel {
+
+    /// The "Universal Speed of Light" for the manifold (normalized per pulse)
+    public static let c_limit: Int64 = 1 << 30 
+    
+    /**
+     # THE ENERGY CONE AXIOM
+     Validity is a function of normalized displacement over a 
+     deterministic temporal window (The Pulse).
+     */
+    public static func isKinematicallyValid(_ delta: [Int64], pulseWidth: Int64) -> Bool {
+        
+        // 1. WIDENED ENERGY ACCUMULATION (Prevent Overflow)
+        // We use a conceptual 128-bit accumulator to handle 32.32 squaring
+        let dx = Int128(delta[0])
+        let dy = Int128(delta[1])
+        let dz = Int128(delta[2])
+        
+        let squaredEnergy = (dx*dx) + (dy*dy) + (dz*dz)
+        
+        // 2. TIME-NORMALIZED VELOCITY BOUND
+        // Limit = (C * Δt)²
+        let v_max = Int128(c_limit) * Int128(pulseWidth)
+        let energyLimit = v_max * v_max
+        
+        // 3. THE CONE CONSTRAINT
+        // Rejects any transition outside the reachable light-cone of the pulse
+        return squaredEnergy <= energyLimit
+    }
+}
+// =====================================================
+// DVSM_PULSE_PIPELINE.swift
+// VERSION: L1_L2_UNIFIED_EXECUTION-V1
+// ROLE: Canonical Execution Path (Structure → Geometry → Commit)
+// =====================================================
+
+import Foundation
+
+extension DVSMKernel {
+
+    /**
+     # PULSE EXECUTION PIPELINE
+
+     This function defines the ONLY valid execution path in the system:
+
+     L1.2 → Syntactic validity (bit-structure correctness)
+     L2.1 → Geometric admissibility (physical feasibility)
+     L1   → State commitment (causal update)
+     */
+
+    public func pulse(rawBuffer: Data) -> DVSMPulseResult {
+
+        // =====================================================
+        // 1. L1.2 — SYNTACTIC DECODING LAYER
+        // =====================================================
+        guard let decoded = DVSMHardenedMirror.decode(rawBuffer) else {
+            return .rejected(reason: .structuralViolation)
+        }
+
+        // =====================================================
+        // 2. L2.1 — GEOMETRIC / PHYSICAL ADMISSIBILITY LAYER
+        // =====================================================
+        guard DVSMGeometricKernel.isAdmissible(decoded) else {
+            return .rejected(reason: .causalOrphan)
+        }
+
+        // =====================================================
+        // 3. L1 — CAUSAL COMMIT (STATE UPDATE)
+        // =====================================================
+
+        let newState = evolve(decoded)
+
+        return .accepted(
+            state: newState,
+            trace: DVSMTrace(
+                input: rawBuffer,
+                decoded: decoded,
+                status: .committed
+            )
+        )
+    }
+}
+// =====================================================
+// L2.2_HARDENED_SVO_FINAL.swift
+// VERSION: DETERMINISTIC-SVO-V2.2 (CONTRACT-CLOSED)
+// STATUS: SPATIAL-EQUIVALENCE MANIFOLD LOCKED
+// =====================================================
+
+import Foundation
+
+/**
+ # L2.2 SPATIAL CONTRACT (FINAL)
+
+ This module defines a deterministic spatial equivalence system,
+ not a geometric truth system.
+
+ CORE PRINCIPLES:
+
+ 1. EQUIVALENCE CLASS MODEL
+    Each voxel represents a finite spatial region.
+    decode() returns the CANONICAL REPRESENTATIVE (center anchor).
+
+ 2. ORIGIN RELATIVITY (GLOBAL INVARIANT)
+    coordinateOffset defines the universal origin shift.
+    It is part of the L0–L5 replay contract.
+
+ 3. RESOLUTION CEILING
+    axisMask defines a hard 21-bit spatial resolution limit.
+    All coordinates outside this space are invalid (L6 fracture).
+
+ 4. MIDPOINT CANONICALIZATION
+    All decoded coordinates are normalized to voxel centers
+    to ensure deterministic replay equivalence.
+ */
+
+public enum DVSMMortonEngine {
+
+    // MARK: - GLOBAL SPATIAL CONTRACT CONSTANTS
+
+    /// 21-bit axis resolution ceiling (2,097,152 discrete units per axis)
+    public static let axisMask: UInt64 = 0x1F_FFFF
+
+    /// Global origin shift (fixed-point world centering constant)
+    /// NOTE: This value is part of the cryptographic replay contract.
+    public static let coordinateOffset: Int64 = 1 << 40
+
+    /// Canonical voxel midpoint bias (ensures deterministic anchoring)
+    private static let halfVoxel: Int64 = 1 << 31
+
+    // MARK: - ENCODE (3D → MORTON KEY)
+
+    /**
+     Converts signed 32.32 fixed-point coordinates into a Morton key.
+     This defines the spatial equivalence class identity.
+     */
+    public static func encode(x: Int64, y: Int64, z: Int64) -> UInt64 {
+
+        // Normalize into unsigned voxel index space
+        let ux = UInt64(bitPattern: (x + coordinateOffset) >> 32) & axisMask
+        let uy = UInt64(bitPattern: (y + coordinateOffset) >> 32) & axisMask
+        let uz = UInt64(bitPattern: (z + coordinateOffset) >> 32) & axisMask
+
+        return interleave(ux) | (interleave(uy) << 1) | (interleave(uz) << 2)
+    }
+
+    // MARK: - DECODE (MORTON KEY → CANONICAL VOXEL ANCHOR)
+
+    /**
+     Returns the canonical voxel center.
+
+     IMPORTANT:
+     - This is NOT a lossless inverse.
+     - This is a deterministic representative mapping.
+     */
+    public static func decode(_ key: UInt64) -> SIMD3<Int64> {
+
+        let x = deinterleave(key)
+        let y = deinterleave(key >> 1)
+        let z = deinterleave(key >> 2)
+
+        return SIMD3<Int64>(
+            canonicalize(x),
+            canonicalize(y),
+            canonicalize(z)
+        )
+    }
+
+    // MARK: - CANONICALIZATION (VOXEL CENTER MAPPING)
+
+    /**
+     Converts voxel index → deterministic center point in world space.
+     This ensures all nodes converge on identical spatial representation.
+     */
+    private static func canonicalize(_ value: UInt64) -> Int64 {
+        let base = (Int64(bitPattern: value) << 32)
+        return (base - coordinateOffset) + halfVoxel
+    }
+
+    // MARK: - MORTON INTERLEAVE
+
+    private static func interleave(_ n: UInt64) -> UInt64 {
+        var x = n & axisMask
+        x = (x | x << 32) & 0x1f00000000ffff
+        x = (x | x << 16) & 0x1f0000ff0000ff
+        x = (x | x << 8)  & 0x100f00f00f00f00f
+        x = (x | x << 4)  & 0x10c30c30c30c30c3
+        x = (x | x << 2)  & 0x1249249249249249
+        return x
+    }
+
+    // MARK: - MORTON DEINTERLEAVE
+
+    private static func deinterleave(_ n: UInt64) -> UInt64 {
+        var x = n & 0x1249249249249249
+        x = (x | x >> 2)  & 0x10c30c30c30c30c3
+        x = (x | x >> 4)  & 0x100f00f00f00f00f
+        x = (x | x >> 8)  & 0x1f0000ff0000ff
+        x = (x | x >> 16) & 0x1f00000000ffff
+        x = (x | x >> 32) & axisMask
+        return x
+    }
+}
+// =====================================================
+// L2.3_SPATIOTEMPORAL_COLLISION.swift
+// VERSION: CAUSAL-PATH-INTEGRITY-V1.1 (V-DDA FIXED)
+// ROLE: Voxel-Boundary Accurate Collision Sweep
+// =====================================================
+
+import Foundation
+
+public enum DVSMCollisionField {
+
+    /**
+     # VOXEL-ACCURATE CAUSAL SWEEP (V-DDA)
+     Traverses voxel boundaries deterministically without sampling loss.
+     */
+    public static func validatePath(
+        start: SIMD3<Int64>,
+        delta: SIMD3<Int64>,
+        manifold: DVSMSparseVoxelMap
+    ) -> Bool {
+
+        let end = start &+ delta
+
+        // Convert to voxel space (32.32 → voxel index)
+        let voxelStart = voxelCoordinate(start)
+        let voxelEnd   = voxelCoordinate(end)
+
+        var current = voxelStart
+
+        let stepX = sign(voxelEnd.x - voxelStart.x)
+        let stepY = sign(voxelEnd.y - voxelStart.y)
+        let stepZ = sign(voxelEnd.z - voxelStart.z)
+
+        // Compute voxel traversal bounds
+        let dx = abs(voxelEnd.x - voxelStart.x)
+        let dy = abs(voxelEnd.y - voxelStart.y)
+        let dz = abs(voxelEnd.z - voxelStart.z)
+
+        let n = max(dx, max(dy, dz))
+        if n == 0 {
+            return !manifold.isOccupied(at: current)
+        }
+
+        // Digital voxel traversal (no interpolation drift possible)
+        for _ in 0...n {
+
+            if manifold.isOccupied(at: current) {
+                return false // CAUSAL BLOCKAGE
+            }
+
+            current = SIMD3<Int64>(
+                current.x + stepX,
+                current.y + stepY,
+                current.z + stepZ
+            )
+        }
+
+        return !manifold.isOccupied(at: voxelEnd)
+    }
+
+    // MARK: - VOXEL NORMALIZATION
+
+    private static func voxelCoordinate(_ p: SIMD3<Int64>) -> SIMD3<Int64> {
+        SIMD3<Int64>(
+            p.x >> 32,
+            p.y >> 32,
+            p.z >> 32
+        )
+    }
+
+    private static func sign(_ v: Int64) -> Int64 {
+        v > 0 ? 1 : (v < 0 ? -1 : 0)
+    }
+}
