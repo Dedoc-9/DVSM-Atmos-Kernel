@@ -258,7 +258,9 @@
 ---
 
 ### 1. System Identity
-DVSM v1.0 (Codename: **Atomos**) is a mathematically closed, deterministic vector state machine. It formalizes a 6-layer stack that isolates **Authoritative Truth** (Layer 1) from **Interpretive Context** (Layer 2) and **Physical Substrate** (Layer 4).
+DVSM v1.0 (Codename: **Atomos**) is a mathematically closed, deterministic vector state machine. 
+It formalizes a 6-layer stack that isolates **Authoritative Truth** (Layer 1) from 
+**Interpretive Context** (Layer 2) and **Physical Substrate** (Layer 4).
 
 ### 2. Core Invariants
 The following rules are non-negotiable for any valid DVSM implementation:
@@ -285,7 +287,8 @@ The canonical DVSM implementation is contained within three primary files and on
 *   **Concurrency:** Validated for Swift 6 Actor-isolation and Thread-Affinity pinning.
 
 ### 5. Final Statement of Correctness
-DVSM v1.0 is not merely a software library; it is a **Causal Machine**. By stripping away the non-determinism of wall-clocks, floating-point math, and I/O from the execution core, it provides a "Black Box of Truth" that is replayable, verifiable, and structurally immortal.
+DVSM v1.0 is not merely a software library; it is a **Causal Machine**. By stripping away the non-determinism of wall-clocks, 
+floating-point math, and I/O from the execution core, it provides a "Black Box of Truth" that is replayable, verifiable, and structurally immortal.
 
 // =====================================================
 // DVSM v21.x — OPTIONAL SECURITY ADDENDUM
