@@ -515,6 +515,125 @@ extension DVSMSpectralObserver {
         return .clean
     }
 }
+Good—this is actually the right direction if you want DVSM to feel like a real unified system instead of a collection of side modules.
+
+But if you’re adding this into README1, the key improvement is:
+you should stop framing it as “anti-cheat logic extension” and instead formalize it as a native property of L2 (Observation Layer refinement) so it doesn’t look bolted on.
+
+Here is a clean, single-file-ready consolidation that fits your original DVSM tone and structure:
+
+// =====================================================
+// L2.7 — DVSMSPECTRAL OBSERVER (INTEGRITY LAYER)
+// Competitive Behavioral Validation Subsystem
+// =====================================================
+//
+// PURPOSE:
+// Extends L2 Observer with deterministic behavioral
+// integrity constraints for competitive environments.
+//
+// This layer does NOT enforce state.
+// It only classifies structural validity of transitions.
+// =====================================================
+
+public struct DVSMSpectralIntegrityConstraints {
+
+    /// Kinematic Integrity Ceiling:
+    /// Maximum allowed delta per pulse for state transition.
+    /// Prevents physically impossible movement in state space.
+    public static let maxManifoldVelocity: Int64 = 1_048_576 // 1024.0 fixed-point
+
+    /// Spectral Noise Floor:
+    /// Minimum entropy threshold expected in human input signals.
+    /// Values below this indicate non-organic periodicity.
+    public static let adversarialOscillationFloor: Double = 15.0
+
+    /// Intent Persistence Floor:
+    /// Measures decay of behavioral intent over time.
+    /// Humans exhibit stochastic drift; perfect consistency is anomalous.
+    public static let tacticalPersistenceFloor: Double = 0.45
+
+    /// Temporal Jitter Baseline:
+    /// Expected variance in reaction timing under normal conditions.
+    public static let reactionVarianceFloor: Double = 0.18
+}
+
+// =====================================================
+// MARK: - L2.7 SPECTRAL BEHAVIORAL OBSERVER
+// =====================================================
+
+extension DVSMSpectralObserver {
+
+    /// L2.7 Integrity Classification Engine
+    /// Evaluates whether a DVSM state transition is
+    /// consistent with organic (non-automated) input behavior.
+    public func validateIntegrityPulse(
+        flux: DVSMFixedVector,
+        persistence: Double,
+        reactionVariance: Double
+    ) -> DVSMIntegritySignal {
+
+        // ---------------------------------------------
+        // 1. KINEMATIC IMPOSSIBILITY CHECK
+        // ---------------------------------------------
+        let values = flux.values
+
+        for delta in values {
+            if abs(delta) > DVSMSpectralIntegrityConstraints.maxManifoldVelocity {
+                return .manifoldViolation
+            }
+        }
+
+        // ---------------------------------------------
+        // 2. SPECTRAL ANALYSIS (HUMAN NOISE MODEL)
+        // ---------------------------------------------
+        let samples = values.map { Double($0) / 1024.0 }
+        let spectralEnergy = self.computeSpectralEnergy(from: samples)
+
+        if spectralEnergy < DVSMSpectralIntegrityConstraints.adversarialOscillationFloor {
+            return .deterministicScriptPattern
+        }
+
+        // ---------------------------------------------
+        // 3. INTENT CONSISTENCY CHECK
+        // ---------------------------------------------
+        if persistence < DVSMSpectralIntegrityConstraints.tacticalPersistenceFloor {
+            return .intentDesync
+        }
+
+        // ---------------------------------------------
+        // 4. REACTION VARIANCE CHECK
+        // ---------------------------------------------
+        if reactionVariance < DVSMSpectralIntegrityConstraints.reactionVarianceFloor {
+            return .nonHumanTimingSignature
+        }
+
+        return .clean
+    }
+}
+
+// =====================================================
+// MARK: - L2.7 ARCHITECTURAL INTERPRETATION
+// =====================================================
+//
+// 1. L2.7 DOES NOT ENFORCE STATE
+//    It only classifies transition validity.
+//
+// 2. DETECTION MODEL IS STRUCTURAL, NOT BEHAVIORAL
+//    The system does not "guess cheating"—it detects
+//    deviations from expected entropy manifolds.
+//
+// 3. INTEGRITY IS A PHYSICAL PROPERTY OF INPUT SPACE
+//    Not a policy decision.
+//
+// =====================================================
+//
+// SECURITY PRINCIPLE:
+//
+// "If a state transition cannot be produced by a
+//  bounded entropy agent, it is not considered valid
+//  within the deterministic manifold."
+//
+// =====================================================
 
 // =====================================================
 // MARK: - ARCHITECTURAL ADDENDUM NOTES
