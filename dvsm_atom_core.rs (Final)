@@ -3535,6 +3535,195 @@ Replay Ledger (H)
 Post-match forensic analysis (Ω tuning)
 
 // =====================================================
+// DVSM_ANTI_CHEAT_ADVERSARIAL_DETECTION_ADDENDUM.swift
+// VERSION: ADVERSARIAL-CONSISTENCY-GATE-V1
+// ROLE:
+// Detects second-order cheating strategies by enforcing
+// cross-domain consistency of input, time, and state.
+// =====================================================
+
+import Foundation
+
+// =====================================================
+// 1. ADVERSARIAL INPUT MODEL
+// =====================================================
+
+public struct DVSMPlayerSignal {
+
+    public let inputTrace: Data
+    public let timestampSeries: [Int64]
+    public let clientStateHash: Data
+    public let serverStateHash: Data
+}
+
+// =====================================================
+// 2. DETECTION RESULT
+// =====================================================
+
+public enum DVSMAdversarialResult {
+
+    case clean
+    case suspicious
+    case highConfidenceCheat
+    case confirmedDivergence
+}
+
+// =====================================================
+// 3. MAIN DETECTOR
+// =====================================================
+
+public enum DVSMAdversarialDetector {
+
+    public static func evaluate(
+        signal: DVSMPlayerSignal
+    ) -> DVSMAdversarialResult {
+
+        let humanScore = evaluateHumanization(signal.inputTrace)
+
+        let causalScore = evaluateCausality(signal.timestampSeries)
+
+        let convergenceScore = evaluateConvergence(
+            client: signal.clientStateHash,
+            server: signal.serverStateHash
+        )
+
+        let total =
+            (humanScore * 0.33) +
+            (causalScore * 0.33) +
+            (convergenceScore * 0.34)
+
+        if total < 0.25 {
+            return .confirmedDivergence
+        }
+
+        if total < 0.5 {
+            return .highConfidenceCheat
+        }
+
+        if total < 0.75 {
+            return .suspicious
+        }
+
+        return .clean
+    }
+
+    // =================================================
+    // 4. HUMANIZATION DETECTOR (SUBTLE AIMBOT CLASS)
+    // =================================================
+
+    private static func evaluateHumanization(
+        _ input: Data
+    ) -> Double {
+
+        let entropy = normalizedEntropy(input)
+
+        let repetition = repetitionIndex(input)
+
+        let variance = abs(entropy - 0.65)
+
+        // Humans cluster around unstable entropy bands,
+        // bots cluster around artificially bounded noise.
+
+        let score =
+            1.0
+            - (variance * 0.6)
+            - (repetition * 0.4)
+
+        return clamp(score)
+    }
+
+    // =================================================
+    // 5. CAUSAL TIME DETECTOR (LATENCY SPOOFING)
+    // =================================================
+
+    private static func evaluateCausality(
+        _ timestamps: [Int64]
+    ) -> Double {
+
+        guard timestamps.count > 2 else {
+            return 1.0
+        }
+
+        var inconsistencies = 0
+
+        for i in 1..<timestamps.count {
+
+            let delta = timestamps[i] - timestamps[i - 1]
+
+            // impossible reaction windows
+            if delta < 5 || delta > 5000 {
+                inconsistencies += 1
+            }
+        }
+
+        let ratio =
+            Double(inconsistencies) /
+            Double(timestamps.count)
+
+        return 1.0 - ratio
+    }
+
+    // =================================================
+    // 6. CROSS-LAYER CONVERGENCE DETECTOR
+    // =================================================
+
+    private static func evaluateConvergence(
+        client: Data,
+        server: Data
+    ) -> Double {
+
+        let mismatch = zip(client, server)
+            .filter { $0 != $1 }
+            .count
+
+        let maxLen = max(client.count, server.count)
+
+        guard maxLen > 0 else { return 1.0 }
+
+        let divergence =
+            Double(mismatch) / Double(maxLen)
+
+        return 1.0 - divergence
+    }
+
+    // =================================================
+    // 7. HELPERS
+    // =================================================
+
+    private static func normalizedEntropy(_ data: Data) -> Double {
+
+        guard !data.isEmpty else { return 0 }
+
+        let counts = Dictionary(grouping: data, by: { $0 })
+            .mapValues { $0.count }
+
+        let total = Double(data.count)
+
+        var entropy: Double = 0
+
+        for (_, count) in counts {
+            let p = Double(count) / total
+            entropy -= p * log2(p)
+        }
+
+        return entropy / 8.0
+    }
+
+    private static func repetitionIndex(_ data: Data) -> Double {
+
+        guard data.count > 1 else { return 0 }
+
+        let unique = Set(data).count
+
+        return 1.0 - (Double(unique) / Double(data.count))
+    }
+
+    private static func clamp(_ x: Double) -> Double {
+        return max(0.0, min(1.0, x))
+    }
+}
+
+// =====================================================
 // FINAL STATEMENT (SYSTEM SEAL)
 // =====================================================
 
