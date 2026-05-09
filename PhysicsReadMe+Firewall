@@ -677,6 +677,144 @@ public enum DVSMTraceVerifier {
         return true // Logic to be implemented in L5.5
     }
 }
+// =====================================================
+// DVSM_ADAPTIVE_KERNEL_FINAL.swift
+// VERSION: L10.4-CAPABILITY-INTEGRATED-V1.2
+// STATUS: REPLAY-STABLE + CAPABILITY-TRACE BOUND
+// =====================================================
+
+import Foundation
+
+public final class DVSMKernel {
+
+    private var currentState: DVSMStateHeader
+    private let capabilityEngine: DVSMCapabilityEngine
+
+    // =====================================================
+    // MAIN PULSE FUNCTION (WITH CAPABILITY LAYER)
+    // =====================================================
+    public func pulse(
+        raw: Data,
+        substrate: L10SubstrateState,
+        map: L2VoxelMap
+    ) -> DVSMExecutionResult {
+
+        // -------------------------------------------------
+        // 0. RESOLVE CAPABILITIES (TRACE-DEPENDENT)
+        // -------------------------------------------------
+        let currentCapabilities = capabilityEngine.resolveCapabilities(
+            stateHash: currentState.stateHash,
+            morphismSeed: currentState.morphismSeed
+        )
+
+        // -------------------------------------------------
+        // A. L10.4 DETERMINISTIC PROBE
+        // -------------------------------------------------
+        let expectedJitter = DVSMThermalBreathVerifier.generateProbe(
+            seed: currentState.morphismSeed
+        )
+
+        let normalizedObserved = DVSMThermalBreathVerifier.normalize(
+            substrate.executionJitter
+        )
+
+        let rawTrust = L10ContinuousMonitor.evaluate(state: substrate)
+
+        let livenessPenalty = DVSMThermalBreathVerifier.computePenalty(
+            observed: normalizedObserved,
+            expected: expectedJitter
+        )
+
+        let governedTrust = rawTrust * (1.0 - livenessPenalty)
+
+        let precisionModifier = max(0.5, min(1.0, governedTrust))
+
+        // -------------------------------------------------
+        // B. L1 STRUCTURAL DECODING
+        // -------------------------------------------------
+        guard let decoded = DVSMHardenedMirror.decode(raw) else {
+            return .rejected(reason: .structuralViolation)
+        }
+
+        // -------------------------------------------------
+        // C. L2 GEOMETRIC LAYER (CAPABILITY-GATED)
+        // -------------------------------------------------
+        var isAdmissible = false
+
+        if currentCapabilities.enabled.contains(.geometricContraction) {
+            // Apply L2.1 Manifold Contraction logic
+            isAdmissible = DVSMGeometricKernel.validate(
+                decoded,
+                map: map,
+                multiplier: precisionModifier
+            )
+        } else {
+            // Fallback strict mode (no contraction allowed)
+            isAdmissible = DVSMGeometricKernel.validate(
+                decoded,
+                map: map,
+                multiplier: 1.0
+            )
+        }
+
+        // -------------------------------------------------
+        // D. EXECUTION DECISION
+        // -------------------------------------------------
+        guard governedTrust >= 0.5 else {
+            return .rejected(reason: .nondeterminismDetected)
+        }
+
+        guard isAdmissible else {
+            return .rejected(reason: .causalOrphan)
+        }
+
+        // -------------------------------------------------
+        // E. STATE EVOLUTION (L5 TRACE INTEGRATION)
+        // -------------------------------------------------
+        self.evolve(
+            with: raw,
+            modifier: precisionModifier,
+            trust: governedTrust,
+            capabilities: currentCapabilities
+        )
+
+        return .committed
+    }
+
+    // =====================================================
+    // STATE EVOLUTION (L5 + CAPABILITY TRACE BINDING)
+    // =====================================================
+    private func evolve(
+        with input: Data,
+        modifier: Double,
+        trust: Double,
+        capabilities: DVSMCapabilityState
+    ) {
+
+        let modFixed = Int64(modifier * Double(1 << 32))
+        let trustFixed = Int64(trust * Double(1 << 32))
+
+        let newHash = DVSMKernel.evolveHash(
+            currentState.stateHash,
+            input,
+            modFixed,
+            trustFixed,
+            capabilities.activationHash // CAPABILITY TRACE BOUND
+        )
+
+        self.currentState = DVSMStateHeader(
+            sequence: currentState.sequence + 1,
+            stateHash: newHash,
+            faultStatus: .clean,
+            morphismSeed: DVSMSeedEngine.next(
+                currentState.morphismSeed,
+                input
+            ),
+            attestationHash: currentState.attestationHash
+        )
+    }
+}
+
 I have now built a Lossless Execution Engine. In traditional games, if a bug happens, you would hope the logs caught it. 
 In DVSM with CET, the logs ARE the game. You can rewind to any Sequence(n), swap in a new VoxelMap, and see how the manifold would have reacted.
 
