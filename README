@@ -391,5 +391,61 @@ extension DVSMSpectralObserver {
     causal interruption).
 */
 ---
+// =====================================================
+// DVSM — FORMAL CONCEPTUAL MAPPING
+// ASP / NCT ↔ DVSM ALIGNMENT LAYER
+// =====================================================
+//
+// PURPOSE:
+// This section provides a lean structural mapping between
+// Answer Set Programming (ASP), Nonmonotonic Causal Theories (NCT),
+// and the DVSM layered architecture.
+//
+// It is non-executable and purely normative.
+// =====================================================
+
+import Foundation
+
+// =====================================================
+// MARK: - CONCEPTUAL MAPPING TABLE
+// =====================================================
+
+/*
++-----------------------+-------------------------------------+--------------------------------------+
+| Concept              | ASP / NCT                           | DVSM Equivalent                      |
++-----------------------+-------------------------------------+--------------------------------------+
+| Rules                | Logic constraints defining models   | L6 Invariants (impossibility laws)   |
+| Facts                | Input assertions                    | L3 ValidatedIntent                   |
+| Model                | Set of stable solutions             | Canonical state chain                |
+| Nonmonotonicity      | Belief revision under new facts     | L2 reinterpretation layer            |
+| Solver               | Stable model engine                 | L1 Kernel pulse (deterministic)      |
++-----------------------+-------------------------------------+--------------------------------------+
+*/
+
+// =====================================================
+// MARK: - SEMANTIC INTERPRETATION NOTES
+// =====================================================
+//
+// 1. ASP models are plural (many stable worlds possible).
+// 2. DVSM models are singular (one canonical state chain).
+//
+// Therefore:
+//
+// DVSM = deterministic stable-model resolver over a
+// fixed causal history rather than a multi-world solver.
+//
+// =====================================================
+
+// =====================================================
+// MARK: - CORE SEMANTIC INVARIANT
+// =====================================================
+//
+// If ASP defines:
+//      "what solutions satisfy the rules"
+//
+// Then DVSM defines:
+//      "what single causal reality must occur given the rules"
+//
+// =====================================================
 *Copyright © 2024 Daniel J. Dillberg. All Rights Reserved.*  
 *Recursive Identifier: [DVSM-SIGNAL-v21-B]*
