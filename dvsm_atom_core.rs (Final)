@@ -820,4 +820,334 @@ public enum DVSMForensicEncoder {
         return Data(SHA256.hash(data: buffer))
     }
 }
+// =====================================================// =====================================================
+// DVSM_ECONOMIC_INTERPRETATION_ENGINE.swift
+// ROLE:
+// Translates logic-state outcomes into economic events
+// with anti-gaming and noise tolerance.
 // =====================================================
+
+import Foundation
+
+// =====================================================
+// 1. ECONOMIC EVENT TYPES
+// =====================================================
+
+public enum DVSMEconomicEvent {
+
+    case reward(amount: Int64)
+    case slash(amount: Int64)
+    case neutral
+    case deferredReview
+}
+
+// =====================================================
+// 2. FAILURE CLASSIFICATION (CRITICAL ADDITION)
+// =====================================================
+
+public enum DVSMFailureClass {
+
+    case none
+    case transientNoise
+    case divergenceMismatch
+    case hardwareInvalid
+    case semanticCorruption
+}
+
+// =====================================================
+// 3. ECONOMIC CONTEXT
+// =====================================================
+
+public struct DVSMExecutionContext {
+
+    public let computeUnits: UInt64
+    public let divergenceIndex: Double
+    public let hardwareTrustScore: Double
+}
+
+// =====================================================
+// 4. INTERPRETER (CORE BINDING LOGIC)
+// =====================================================
+
+public enum DVSMEconomicInterpreter {
+
+    public static func interpret(
+        state: DVSMLogicState,
+        context: DVSMExecutionContext
+    ) -> DVSMEconomicEvent {
+
+        let failure = classify(state: state, context: context)
+
+        switch failure {
+
+        case .none:
+            return .reward(amount: baseReward(context))
+
+        case .transientNoise:
+            return .neutral   // no slashing for noise
+
+        case .divergenceMismatch:
+            return .slash(amount: scaledPenalty(context, factor: 0.5))
+
+        case .hardwareInvalid:
+            return .slash(amount: scaledPenalty(context, factor: 1.0))
+
+        case .semanticCorruption:
+            return .slash(amount: scaledPenalty(context, factor: 2.0))
+        }
+    }
+}
+// =====================================================
+// DVSM_L_INFINITY_EVOLUTION_ENGINE.swift
+// VERSION: CONSTITUTIONAL-SELF-UPDATE-V1
+// ROLE:
+// Deterministic evolution of system rules via replay.
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// 1. RULESET VERSION
+// =====================================================
+
+public struct DVSMRuleSetVersion {
+
+    public let version: UInt64
+    public let configHash: Data
+}
+
+// =====================================================
+// 2. EVOLUTION PROPOSAL
+// =====================================================
+
+public struct DVSMRuleProposal {
+
+    public let baseVersion: UInt64
+    public let patchHash: Data
+    public let diffPayload: Data
+}
+
+// =====================================================
+// 3. SIMULATION RESULT
+// =====================================================
+
+public struct DVSMEvolutionResult {
+
+    public let valid: Bool
+    public let projectedDivergence: Double
+    public let projectedSlashingLoad: Double
+}
+EVOLUTION ENGINE (CORE LOGIC):
+
+public enum DVSMEvolutionEngine {
+
+    // ---------------------------------------------
+    // PROPOSE RULE CHANGE
+    // ---------------------------------------------
+
+    public static func propose(
+        current: DVSMRuleSetVersion,
+        patch: DVSMRuleProposal
+    ) -> DVSMEvolutionResult {
+
+        guard patch.baseVersion == current.version else {
+            return DVSMEvolutionResult(
+                valid: false,
+                projectedDivergence: 1.0,
+                projectedSlashingLoad: 1.0
+            )
+        }
+
+        // simulate deterministic impact
+        let divergence =
+            simulateDivergence(patch.diffPayload)
+
+        let slashing =
+            simulateEconomicLoad(patch.diffPayload)
+
+        let valid =
+            divergence < 0.2 && slashing < 0.3
+
+        return DVSMEvolutionResult(
+            valid: valid,
+            projectedDivergence: divergence,
+            projectedSlashingLoad: slashing
+        )
+    }
+
+    // ---------------------------------------------
+    // COMMIT EVOLUTION
+    // ---------------------------------------------
+
+    public static func commit(
+        current: DVSMRuleSetVersion,
+        proposal: DVSMRuleProposal,
+        result: DVSMEvolutionResult
+    ) -> DVSMRuleSetVersion? {
+
+        guard result.valid else {
+            return nil
+        }
+
+        let newHash = SHA256.hash(data: proposal.diffPayload)
+
+        return DVSMRuleSetVersion(
+            version: current.version + 1,
+            configHash: Data(newHash)
+        )
+    }
+}
+IMULATION FUNCTIONS (PLACEHOLDER MODEL):
+
+private extension DVSMEvolutionEngine {
+
+    static func simulateDivergence(_ data: Data) -> Double {
+        return Double(data.count % 100) / 100.0
+    }
+
+    static func simulateEconomicLoad(_ data: Data) -> Double {
+        return Double(data.count % 50) / 50.0
+    }
+}
+----------------------------- MODULE DVSM_LInfinity -----------------------------
+
+EXTENDS Naturals, Sequences, FiniteSets
+
+(***************************************************************************)
+(* CONSTANTS                                                              *)
+(***************************************************************************)
+
+CONSTANT MaxDivergence
+CONSTANT MaxSlashingLoad
+
+(***************************************************************************)
+(* STATE VARIABLES                                                       *)
+(***************************************************************************)
+
+VARIABLE
+    version,          \* current rule version
+    configHash,       \* hash of active rule-set
+    proposals,        \* set of pending proposals
+    accepted,         \* set of accepted proposals
+    rejected          \* set of rejected proposals
+
+(***************************************************************************)
+(* INITIAL STATE                                                         *)
+(***************************************************************************)
+
+Init ==
+    /\ version = 0
+    /\ configHash = "genesis"
+    /\ proposals = {}
+    /\ accepted = {}
+    /\ rejected = {}
+
+(***************************************************************************)
+(* PROPOSAL GENERATION                                                  *)
+(***************************************************************************)
+
+Propose(p) ==
+    /\ p \notin proposals
+    /\ proposals' = proposals \cup {p}
+    /\ UNCHANGED <<version, configHash, accepted, rejected>>
+
+(***************************************************************************)
+(* VALIDATION FUNCTION (ABSTRACTED)                                     *)
+(***************************************************************************)
+
+Valid(p) ==
+    /\ p.divergence <= MaxDivergence
+    /\ p.slashingLoad <= MaxSlashingLoad
+    /\ p.baseVersion = version
+
+(***************************************************************************)
+(* ACCEPT RULE SET CHANGE                                               *)
+(***************************************************************************)
+
+Accept(p) ==
+    /\ p \in proposals
+    /\ Valid(p)
+    /\ accepted' = accepted \cup {p}
+    /\ version' = version + 1
+    /\ configHash' = p.hash
+    /\ proposals' = proposals \ {p}
+    /\ rejected' = rejected
+
+(***************************************************************************)
+(* REJECT RULE SET CHANGE                                               *)
+(***************************************************************************)
+
+Reject(p) ==
+    /\ p \in proposals
+    /\ ~Valid(p)
+    /\ rejected' = rejected \cup {p}
+    /\ proposals' = proposals \ {p}
+    /\ UNCHANGED <<version, configHash, accepted>>
+
+(***************************************************************************)
+(* NEXT-STATE RELATION                                                  *)
+(***************************************************************************)
+
+Next ==
+    \E p :
+        Propose(p)
+      \/ Accept(p)
+      \/ Reject(p)
+
+(***************************************************************************)
+(* INVARIANTS                                                           *)
+(***************************************************************************)
+
+TypeInvariant ==
+    /\ version \in Nat
+    /\ configHash \in STRING
+    /\ proposals \subseteq [divergence: Nat, slashingLoad: Nat, baseVersion: Nat, hash: STRING]
+
+NoDoubleCommit ==
+    \A p, q \in accepted :
+        p.baseVersion # q.baseVersion => p.hash # q.hash
+
+MonotonicVersion ==
+    version' >= version
+
+BoundedDivergence ==
+    \A p \in accepted :
+        p.divergence <= MaxDivergence
+
+(***************************************************************************)
+(* SPECIFICATION                                                        *)
+(***************************************************************************)
+
+Spec ==
+    Init /\ [][Next]_<<version, configHash, proposals, accepted, rejected>>
+
+(***************************************************************************)
+(* PROPERTIES TO PROVE                                                  *)
+(***************************************************************************)
+
+THEOREM Safety ==
+    Spec => []TypeInvariant
+
+THEOREM NoInvalidEvolution ==
+    Spec => [](\A p \in accepted : Valid(p))
+
+THEOREM DeterministicEvolution ==
+    Spec => [] (version' = version + Cardinality(accepted))
+\
+⚠️ IMPORTANT LIMITATION (REALITY CHECK):
+
+TLA+ does NOT:
+execute your system
+guarantee real-world security
+model cryptography perfectly
+handle performance constraints
+
+It DOES:
+prove structural correctness of rule evolution
+eliminate whole classes of governance bugs
+ensure determinism of meta-updates
+
+
+
+=============================================================================
