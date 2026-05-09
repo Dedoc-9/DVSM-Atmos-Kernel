@@ -3,6 +3,8 @@
 // VERSION: PARTITION-AWARE-CANONICAL-ARBITRATION-V2
 // ROLE: Resolves partitioning, divergence attribution, and canonical selection
 // Author: Daniel J. Dillberg
+// Reference Core: (Final Version);
+// https://github.com/Dedoc-9/DVSM-Atmos-Kernel/blob/main/dvsm_atom_core.rs%20(Final)
 // =====================================================
 
 // =====================================================
