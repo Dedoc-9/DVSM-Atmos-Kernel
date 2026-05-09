@@ -8,11 +8,8 @@
 // PROJECT NAME:
 // DVSM v∞ — Reality-Stable Deterministic Execution System
 //
-// AUTHOR:
-// Daniel J. Dillberg
-//
 // STATUS:
-// Research / Architectural Specification / High-Assurance System Design
+// Closed Formal Specification / Deterministic Reachability Architecture / High-Assurance Distributed Execution System
 //
 // PRIMARY PURPOSE:
 // DVSM is a causally-closed deterministic execution architecture
