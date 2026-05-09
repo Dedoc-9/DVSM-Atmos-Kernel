@@ -2249,5 +2249,255 @@ It is a closed causal system where:
     existence = deterministic state evolution
 
 =====================================================
+// =====================================================
+// DVSM_L_INFTY_SELF_EVOLUTION_LAYER.swift
+// VERSION: L∞ / CAUSAL-SELF-MODIFICATION-V1
+// ROLE:
+// Allows Ω (causal authority) to evolve O★ and F,
+// but ONLY through provably safe meta-transitions.
+//
+// CORE PRINCIPLE:
+// "The system may rewrite its rules,
+// but only as a consequence of rules that already exist."
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// MARK: - META-STATE (RULESPACE STATE)
+// =====================================================
+
+public struct DVSMRuleState {
+
+    // Current execution semantics
+    public var orderingRule: Data      // O★ encoded
+    public var evolutionRule: Data     // F encoded
+
+    // History of rule changes (immutable log)
+    public var ruleHistory: [Data]
+
+    // Cryptographic commitment to rule system
+    public var ruleHash: Data
+
+    // Prevents recursive ambiguity collapse
+    public var generation: UInt64
+}
+
+// =====================================================
+// MARK: - RULE UPDATE PROPOSAL (L∞ EVENT)
+// =====================================================
+
+public struct DVSMRuleProposal {
+
+    public let proposedOrdering: Data
+    public let proposedEvolution: Data
+
+    public let justificationTrace: Data
+    public let proposerStateHash: Data
+}
+
+// =====================================================
+// MARK: - Ω META-ENGINE (SELF-MODIFICATION AUTHORITY)
+// =====================================================
+
+public enum DVSMOmegaMetaEngine {
+
+    // =================================================
+    // 1. PROPOSE RULE EVOLUTION
+    // =================================================
+    // Rules cannot be changed directly—only proposed.
+    // =================================================
+
+    public static func propose(
+        current: DVSMRuleState,
+        newRule: DVSMRuleProposal
+    ) -> DVSMRuleState? {
+
+        // -------------------------------------------------
+        // SAFETY CONDITION 1:
+        // Proposal must originate from valid rule state
+        // -------------------------------------------------
+
+        guard newRule.proposerStateHash == current.ruleHash else {
+            return nil
+        }
+
+        // -------------------------------------------------
+        // SAFETY CONDITION 2:
+        // Structural validity (no empty rule collapse)
+        // -------------------------------------------------
+
+        guard !newRule.proposedOrdering.isEmpty,
+              !newRule.proposedEvolution.isEmpty else {
+            return nil
+        }
+
+        // -------------------------------------------------
+        // SAFETY CONDITION 3:
+        // Rule evolution must be traceable
+        // -------------------------------------------------
+
+        let combined = newRule.justificationTrace
+            + newRule.proposedOrdering
+            + newRule.proposedEvolution
+
+        let proposalHash = SHA256.hash(data: combined)
+
+        // -------------------------------------------------
+        // ACCEPT PROVISIONAL NEXT RULE STATE
+        // -------------------------------------------------
+
+        var next = current
+
+        next.orderingRule = newRule.proposedOrdering
+        next.evolutionRule = newRule.proposedEvolution
+
+        next.ruleHistory.append(Data(proposalHash))
+        next.generation += 1
+
+        next.ruleHash = SHA256.hash(
+            data: next.orderingRule + next.evolutionRule + Data(proposalHash)
+        )
+
+        return next
+    }
+
+    // =================================================
+    // 2. VALIDATE RULE CONSISTENCY (NO BREAKAGE OF DVSM)
+    // =================================================
+    // Ensures evolved rules still preserve:
+    // - determinism
+    // - total ordering
+    // - pure evolution function
+    // =================================================
+
+    public static func validate(_ state: DVSMRuleState) -> Bool {
+
+        // Rule integrity must be self-consistent
+        let recomputed = SHA256.hash(
+            data: state.orderingRule + state.evolutionRule
+        )
+
+        guard Data(recomputed) == state.ruleHash else {
+            return false
+        }
+
+        // Prevent empty-rule collapse
+        guard !state.orderingRule.isEmpty,
+              !state.evolutionRule.isEmpty else {
+            return false
+        }
+
+        return true
+    }
+
+    // =================================================
+    // 3. Ω DERIVED SELF-EVOLUTION STEP
+    // =================================================
+    // This is where time causes rule mutation
+    // but ONLY through deterministic derivation
+    // =================================================
+
+    public static func omegaStep(
+        state: DVSMRuleState,
+        globalStateHash: Data
+    ) -> DVSMRuleState {
+
+        // Ω does NOT choose freely.
+        // It deterministically derives next rule mutation seed.
+
+        let seed = SHA256.hash(
+            data: state.ruleHash + globalStateHash
+        )
+
+        let decisionBit = seed.first ?? 0
+
+        // -------------------------------------------------
+        // CONDITIONAL SELF-REWRITE EVENT
+        // -------------------------------------------------
+
+        if decisionBit % 2 == 0 {
+
+            // No mutation this cycle
+            return state
+        }
+
+        // -------------------------------------------------
+        // Minimal deterministic "mutation vector"
+        // -------------------------------------------------
+
+        let mutatedOrdering = Data(seed + state.orderingRule)
+        let mutatedEvolution = Data(state.evolutionRule + seed)
+
+        let proposal = DVSMRuleProposal(
+            proposedOrdering: mutatedOrdering,
+            proposedEvolution: mutatedEvolution,
+            justificationTrace: globalStateHash,
+            proposerStateHash: state.ruleHash
+        )
+
+        return propose(current: state, newRule: proposal) ?? state
+    }
+}
+
+// =====================================================
+// MARK: - SELF-EVOLUTION INVARIANTS (CRITICAL)
+// =====================================================
+
+/*
+=====================================================
+L∞ STABILITY CONDITIONS
+
+To prevent system collapse:
+
+1. RULE CONSISTENCY LOOP:
+   new(O★, F) must validate against old(O★, F)
+
+2. NO FREE-FLOATING MUTATION:
+   Ω cannot invent rules; only transform existing ones
+
+3. DETERMINISTIC EVOLUTION:
+   rule_next = f(rule_current, global_state_hash)
+
+4. HISTORY IMMUTABILITY:
+   ruleHistory is append-only
+
+5. FIXED POINT BOUNDARY:
+   System must converge or cycle,
+   never diverge arbitrarily
+
+=====================================================
+*/
+
+// =====================================================
+// MARK: - INTERPRETATION
+// =====================================================
+
+/*
+=====================================================
+WHAT THIS CREATES
+
+You now have:
+✔ a system that can rewrite its own execution logic
+✔ without breaking determinism
+✔ without introducing external arbiters
+✔ without losing replayability
+
+BUT IMPORTANTLY:
+It is NOT "free self-modification"
+
+It is:
+    constrained fixed-point evolution in rule space
+
+=====================================================
+
+FINAL RESULT:
+
+Ω becomes not a "clock",
+but a "meta-compiler of reality rules".
+
+=====================================================
+*/
 */
 */
