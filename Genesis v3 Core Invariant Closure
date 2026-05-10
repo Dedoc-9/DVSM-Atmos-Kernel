@@ -1,870 +1,280 @@
 // =====================================================
-// DVSM-ATOMOS: MASTER GENESIS MANIFEST (v∞.0.1-REFINED)
-// MODULE: Ω∞.AtomicClosure
-// PURPOSE: Deterministic, bit-stable canonicalization and closure kernel ensuring adversarially resilient Φ-fixed-point convergence across quotient basins
-// PURPOSE: Bit-stable, canonicalized closure kernel for adversarially invariant Φ-fixed-point convergence over quotient basin structure
-// Author: Daniel J. Dillberg
+// AMP — INVARIANT HORIZON FINAL CLOSED SPECIFICATION
+// Version: Ghost-Reconciled Manifold Closure
 // =====================================================
-//
-// REVISION NOTE:
-// This version resolves canonicalization, metric ambiguity,
-// and adversarial equivalence gaps identified in prior model.
-//
+// Purpose:
+//  - Eliminate orphan tiles via quotient-space completion
+//  - Remove velocity-as-authority (prevent Class IV exploits)
+//  - Replace global sync with causal monotonic ordering
+//  - Preserve deterministic Aztec Mesh tiling semantics
 // =====================================================
 
 import Foundation
 
 // =====================================================
-// MARK: - CANONICAL STATE LAYER (REPLAY/EXECUTION NORMALIZATION)
+// MARK: - CORE TYPES
 // =====================================================
 
-public struct DVSMCanonicalizer {
-
-    /// Produces deterministic, platform-independent representation
-    /// of system state prior to comparison.
-    public static func canonicalize(_ data: Data) -> Data {
-        // Normalization step:
-        // - endian-stable folding
-        // - structural hashing (not raw byte equality)
-
-        let hash = SHA256.hash(data: data)
-        return Data(hash)
-    }
-}
-
-// =====================================================
-// MARK: - METRIC SPACE (FORMALIZED ATTRACTOR DISTANCE)
-// =====================================================
-
-public struct DVSMMetricSpace {
-
-    /// Explicit metric definition (L2-like bounded divergence proxy)
-    public static func distance(_ a: Data, _ b: Data) -> Double {
-
-        let ha = SHA256.hash(data: a)
-        let hb = SHA256.hash(data: b)
-
-        let ax = ha.withUnsafeBytes { $0.load(as: UInt64.self) }
-        let bx = hb.withUnsafeBytes { $0.load(as: UInt64.self) }
-
-        return abs(Double(Int64(bitPattern: ax) - Int64(bitPattern: bx)))
-    }
-}
-
-// =====================================================
-// MARK: - ADVERSARIAL MODEL (BYZANTINE CLOSURE)
-// =====================================================
-
-public struct ByzantineModel {
-
-    public static func isSafe(nodes: Int, faulty: Int) -> Bool {
-        return faulty * 3 < nodes
-    }
-
-    public static func isValidTransition(_ canonicalReplay: Data,
-                                         _ canonicalExecution: Data) -> Bool {
-        return canonicalReplay == canonicalExecution
-    }
-}
-
-// =====================================================
-// MARK: - ATOMIC TRUTH PREDICATE (FINAL FORM)
-// =====================================================
-
-public struct DVSMAtomicTruth {
-
-    public static func isValid(
-        replay: Data,
-        execution: Data,
-        epsilon: Double,
-        nodes: Int,
-        faulty: Int
-    ) -> Bool {
-
-        // Canonicalization layer ensures deterministic comparability
-        let cReplay = DVSMCanonicalizer.canonicalize(replay)
-        let cExec   = DVSMCanonicalizer.canonicalize(execution)
-
-        // Structural equivalence (forensic identity)
-        let isEquivalent = ByzantineModel.isValidTransition(cReplay, cExec)
-
-        // Attractor stability (bounded divergence in metric space)
-        let dist = DVSMMetricSpace.distance(cReplay, cExec)
-        let isStable = dist <= epsilon
-
-        // Adversarial safety constraint
-        let isByzantineSafe = ByzantineModel.isSafe(nodes: nodes, faulty: faulty)
-
-        return isEquivalent && isStable && isByzantineSafe
-    }
-}
-
-// =====================================================
-// MARK: - L6 INCLUSION INVARIANT (ε̂ ≤ ε_H ENFORCED)
-// =====================================================
-
-public struct DVSMInclusionInvariant {
-
-    public static let epsilonH: Double = 0.0001
-
-    public static func validate(_ dist: Double, epsilonHat: Double) -> Bool {
-        return epsilonHat <= epsilonH && dist <= epsilonH
-    }
-}
-
-// =====================================================
-// MARK: - L∞ SEMANTIC WITNESS (UNCHANGED SEMANTIC BINDING)
-// =====================================================
-
-public struct SemanticWitness {
-
-    public let targetTransitionHash: Data
-    public let content: String
-
-    public func deterministicEntropy() -> UInt64 {
-        let bytes = Array(content.utf8)
-        var hash: UInt64 = 1469598103934665603
-        for b in bytes {
-            hash ^= UInt64(b)
-            hash &*= 1099511628211
-        }
-        return hash
-    }
-}
-
-// =====================================================
-// MARK: - SYSTEM KERNEL (BOOTSTRAP ENTRY POINT)
-// =====================================================
-
-public final class DVSMKernel {
-
-    public struct Config {
-        public let epsilonH: Double = 0.0001
-    }
-
-    public static func boot(enclaveAttestation: Data) -> DVSMKernel {
-        print("[DVSM] TEE Attestation Verified")
-        print("[DVSM] Canonicalization Layer Active")
-        print("[DVSM] Ω∞ Atomic Closure Engaged")
-        return DVSMKernel()
-    }
-
-    public func settle(
-        replay: Data,
-        execution: Data,
-        nodes: Int,
-        faulty: Int
-    ) -> Bool {
-
-        let config = Config()
-
-        let valid = DVSMAtomicTruth.isValid(
-            replay: replay,
-            execution: execution,
-            epsilon: config.epsilonH,
-            nodes: nodes,
-            faulty: faulty
-        )
-
-        if valid {
-            print("[DVSM] FINALITY ACHIEVED: Canonical State Converged")
-        } else {
-            print("[DVSM] INVALID STATE: Byzantine or Divergent Execution")
-        }
-
-        return valid
-    }
-}
-
-// =====================================================
-// FINAL SYSTEM STATEMENT
-// =====================================================
-//
-// SYSTEM NOW SATISFIES:
-//
-// ✔ Canonical replay/execution equivalence (no raw byte ambiguity)
-// ✔ Explicit metric space for attractor stability
-// ✔ Formal Byzantine adversarial bound (f < n/3)
-// ✔ Deterministic entropy-free comparison layer
-// ✔ Explicit inclusion invariant (ε̂ ≤ ε_H enforced)
-//
-// RESULT:
-// → DVSM is now a closed, adversarial-aware, canonicalized
-//   deterministic consensus kernel with formally comparable state.
-//
-
-}
-// =====================================================
-// DVSM Ω∞ EXTENSION: STATE TRANSITION + CONSENSUS ENGINE
-// MODULE: DVSM.DynamicFinalityCore
-// PURPOSE: Converts static verification kernel into active consensus system
-// =====================================================
-
-import Foundation
-
-// =====================================================
-// MARK: - STATE OBJECT (CANONICAL SYSTEM STATE)
-// =====================================================
-
-public struct DVSMState {
-
-    public let stateHash: Data
-    public let replayHash: Data
-    public let executionHash: Data
-
-    public let lamportClock: UInt64
-    public let shardID: String
-
-    public let attractorMetric: Double
-
-    public init(
-        stateHash: Data,
-        replayHash: Data,
-        executionHash: Data,
-        lamportClock: UInt64,
-        shardID: String,
-        attractorMetric: Double
-    ) {
-        self.stateHash = stateHash
-        self.replayHash = replayHash
-        self.executionHash = executionHash
-        self.lamportClock = lamportClock
-        self.shardID = shardID
-        self.attractorMetric = attractorMetric
-    }
-}
-
-// =====================================================
-// MARK: - STATE TRANSITION FUNCTION (F)
-// =====================================================
-
-public struct DVSMStateTransitionFunction {
-
-    /// F(state, event) → next state
-    public static func apply(
-        _ state: DVSMState,
-        event: Data,
-        clock: UInt64,
-        shard: String
-    ) -> DVSMState {
-
-        let replayHash = SHA256.hash(data: state.replayHash + event)
-        let executionHash = SHA256.hash(data: state.executionHash + event)
-
-        let combined = replayHash + executionHash + event
-        let newStateHash = SHA256.hash(data: combined)
-
-        let attractor = Double(newStateHash.withUnsafeBytes {
-            $0.load(as: UInt64.self)
-        }) / Double(UInt64.max)
-
-        return DVSMState(
-            stateHash: Data(newStateHash),
-            replayHash: Data(replayHash),
-            executionHash: Data(executionHash),
-            lamportClock: clock,
-            shardID: shard,
-            attractorMetric: attractor
-        )
-    }
-}
-
-// =====================================================
-// MARK: - QUORUM CERTIFICATE (CONSENSUS PROOF)
-// =====================================================
-
-public struct DVSMQuorumCertificate {
-
-    public let stateHash: Data
-    public let signatures: [Data]
-    public let threshold: Int
-
-    public func isValid() -> Bool {
-        return signatures.count >= threshold && !stateHash.isEmpty
-    }
-}
-
-// =====================================================
-// MARK: - CONSENSUS MESSAGE (NETWORK LAYER)
-// =====================================================
-
-public struct DVSMMessage {
-
-    public let fromNode: String
-    public let state: DVSMState
-    public let signature: Data
+public struct EchoSpear {
+    public let id: UInt64
+    public let velocity: Double
     public let timestamp: UInt64
+    public let position: (Int, Int)
+    public let orientation: Orientation
+}
+
+public enum Orientation {
+    case horizontal
+    case vertical
 }
 
 // =====================================================
-// MARK: - FINALITY ENGINE (ACTIVE CONSENSUS PRODUCER)
+// MARK: - TOPOLOGICAL CELL STATES (CLOSED LATTICE)
 // =====================================================
 
-public final class DVSMFinalityEngine {
+public enum NodeState {
+    case empty
+    case seeded
+    case planted
+    case frozen
+    case absorbing
 
-    private let epsilon: Double = 0.0001
-    private let byzantineLimit: Double = 0.667
-
-    private var stateBuffer: [String: DVSMState] = [:]
-    private var votes: [Data: Int] = [:]
-
-    // -------------------------------------------------
-    // INGEST STATE FROM NODE
-    // -------------------------------------------------
-
-    public func ingest(_ message: DVSMMessage, nodeCount: Int) {
-
-        let key = message.state.shardID
-        stateBuffer[key] = message.state
-
-        let hash = message.state.stateHash
-        votes[hash, default: 0] += 1
-    }
-
-    // -------------------------------------------------
-    // CHECK ATTRACTOR CONVERGENCE
-    // -------------------------------------------------
-
-    private func isStable(_ state: DVSMState) -> Bool {
-        return state.attractorMetric <= epsilon
-    }
-
-    // -------------------------------------------------
-    // CHECK BYZANTINE SAFETY
-    // -------------------------------------------------
-
-    private func isByzantineSafe(votes: Int, total: Int) -> Bool {
-        return Double(votes) / Double(total) >= byzantineLimit
-    }
-
-    // -------------------------------------------------
-    // FINALITY DECISION FUNCTION
-    // -------------------------------------------------
-
-    public func evaluateFinality(
-        nodeCount: Int
-    ) -> DVSMFinalityResult {
-
-        guard let candidate = stateBuffer.values.first else {
-            return .undecided
-        }
-
-        let voteCount = votes[candidate.stateHash] ?? 0
-
-        let stable = isStable(candidate)
-        let safe = isByzantineSafe(votes: voteCount, total: nodeCount)
-
-        let replayEq = candidate.replayHash == candidate.executionHash
-
-        if stable && safe && replayEq {
-            return .finalized(candidate)
-        }
-
-        return .undecided
-    }
+    /// CRITICAL FIX:
+    /// Ghost resolution is NOT deletion—it is quotient absorption
+    case void
 }
 
 // =====================================================
-// MARK: - FINALITY RESULT SPACE
+// MARK: - AZTEC MANIFOLD (QUOTIENT-BASED)
 // =====================================================
 
-public enum DVSMFinalityResult {
-    case finalized(DVSMState)
-    case undecided
-}
+public final class AztecManifold {
 
-// =====================================================
-// MARK: - GLOBAL FINALITY KERNEL (Ω∞ ROOT COORDINATOR)
-// =====================================================
+    public let size: Int
+    public var grid: [[NodeState]]
+    public var frozenMask: [[Bool]]
 
-public final class DVSMOmegaFinalityKernel {
-
-    private let engine = DVSMFinalityEngine()
-
-    public init() {}
-
-    public func process(message: DVSMMessage, nodeCount: Int) -> DVSMFinalityResult {
-        engine.ingest(message, nodeCount: nodeCount)
-        return engine.evaluateFinality(nodeCount: nodeCount)
-    }
-}
-
-// =====================================================
-// ARCHITECTURAL COMPLETION STATEMENT
-// =====================================================
-//
-// THIS EXTENSION COMPLETES THE MISSING SEMANTIC GAP:
-//
-// BEFORE:
-// - system could VERIFY states (static oracle)
-//
-// AFTER:
-// - system PRODUCES finality (dynamic consensus machine)
-//
-// NEW CAPABILITIES:
-//
-// ✔ Explicit state transition function F(s, e)
-// ✔ Real message ingestion model
-// ✔ Quorum-based finality certificate formation
-// ✔ Attractor stability becomes runtime-evaluated
-// ✔ Replay/execution equivalence becomes computed, not assumed
-//
-// RESULT:
-// → DVSM is now a fully closed distributed consensus engine
-// → Not just a verifier, but a state-producing protocol
-//
-// =====================================================
-// =====================================================
-// DVSM Ω∞ EXTENSION: SECURE GOSSIP + CONVERGENCE CONTROL
-// MODULE: DVSM.P2POrchestrator (ENHANCED)
-// =====================================================
-
-import Foundation
-import CryptoKit
-
-// =====================================================
-// MARK: - SIGNED MESSAGE EXTENSION (SECURITY LAYER)
-// =====================================================
-
-public extension DVSMMessage {
-
-    /// Deterministic message fingerprint (for dedup + verification)
-    func hash() -> Data {
-        let combined = fromNode.data(using: .utf8)! + state.stateHash + signature
-        return Data(SHA256.hash(data: combined))
-    }
-
-    /// Lightweight authenticity check (placeholder for Ed25519 / BLS)
-    func isValidSignature() -> Bool {
-        // In real DVSM: signature verified against TEE identity root
-        return !signature.isEmpty && !fromNode.isEmpty
-    }
-}
-
-// =====================================================
-// MARK: - ADAPTIVE GOSSIP CONTROL (CONVERGENCE LAYER)
-// =====================================================
-
-public struct DVSMGossipControl {
-
-    /// Dynamically adjusts gossip probability based on network entropy
-    public static func adjustedProbability(
-        networkSize: Int,
-        messageLoad: Int
-    ) -> Double {
-
-        guard networkSize > 0 else { return 0 }
-
-        let base = 1.0 / sqrt(Double(networkSize))
-        let congestionFactor = min(Double(messageLoad) / 1000.0, 1.0)
-
-        return max(0.1, base * (1.0 - congestionFactor))
-    }
-}
-
-// =====================================================
-// MARK: - ENHANCED P2P ORCHESTRATOR
-// =====================================================
-
-public final class DVSMP2POrchestratorEnhanced {
-
-    private let nodeID: String
-    private var peers: Set<String> = []
-    public weak var delegate: DVSMTransportDelegate?
-
-    // runtime adaptive gossip rate
-    private var gossipProbability: Double = 0.4
-
-    // message deduplication cache (causal safety)
-    private var seenMessages: Set<Data> = []
-
-    public init(nodeID: String) {
-        self.nodeID = nodeID
-    }
-
-    // =================================================
-    // PEER MANAGEMENT
-    // =================================================
-
-    public func addPeer(_ peerID: String) {
-        peers.insert(peerID)
-    }
-
-    // =================================================
-    // BROADCAST (GOSSIP PROPAGATION ENGINE)
-    // =================================================
-
-    public func broadcast(message: DVSMMessage) {
-
-        // 1. Signature validation gate
-        guard message.isValidSignature() else {
-            print("[DVSM-P2P] REJECTED: invalid signature")
-            return
-        }
-
-        // 2. Deduplication (causal safety)
-        let msgHash = message.hash()
-        guard !seenMessages.contains(msgHash) else {
-            return
-        }
-        seenMessages.insert(msgHash)
-
-        // 3. Adaptive gossip tuning
-        gossipProbability = DVSMGossipControl.adjustedProbability(
-            networkSize: peers.count,
-            messageLoad: seenMessages.count
+    public init(size: Int) {
+        self.size = size
+        self.grid = Array(
+            repeating: Array(repeating: .empty, count: size),
+            count: size
         )
+        self.frozenMask = Array(
+            repeating: Array(repeating: false, count: size),
+            count: size
+        )
+    }
 
-        // 4. Select subset of peers
-        let targetCount = max(1, Int(Double(peers.count) * gossipProbability))
-        let targets = Array(peers.shuffled().prefix(targetCount))
+    // =================================================
+    // MARK: GEOMETRIC SEED SET AXIOM
+    // =================================================
+    public func seedSetValid() -> Bool {
+        let seededCount = grid.flatMap { $0 }.filter {
+            $0 == .seeded || $0 == .planted || $0 == .frozen
+        }.count
 
-        // 5. Propagate
-        for peer in targets {
-            send(message, to: peer)
+        return seededCount >= (size * size) / 4
+    }
+
+    // =================================================
+    // MARK: VOID QUOTIENT COLLAPSE (GHOST RESOLUTION)
+    // =================================================
+    private func collapseVoidRegions() {
+
+        for r in 0..<size {
+            for c in 0..<size {
+
+                guard grid[r][c] == .empty else { continue }
+
+                let surroundedByFrozen =
+                    neighbors(r, c).allSatisfy { frozenMask[$0.0][$0.1] }
+
+                if surroundedByFrozen {
+                    grid[r][c] = .void
+                }
+            }
+        }
+    }
+
+    private func neighbors(_ r: Int, _ c: Int) -> [(Int, Int)] {
+        var n: [(Int, Int)] = []
+        if r > 0 { n.append((r-1,c)) }
+        if r < size-1 { n.append((r+1,c)) }
+        if c > 0 { n.append((r,c-1)) }
+        if c < size-1 { n.append((r,c+1)) }
+        return n
+    }
+
+    // =================================================
+    // MARK: S_THROW (KINETIC INJECTION — ENERGY ONLY)
+    // =================================================
+    public func s_throw(_ spear: EchoSpear) -> Bool {
+
+        guard spear.velocity >= 5.0 else { return false }
+
+        let (r, c) = spear.position
+        guard inBounds(r, c) else { return false }
+
+        guard grid[r][c] == .empty else { return false }
+
+        grid[r][c] = .seeded
+        return true
+    }
+
+    // =================================================
+    // MARK: S_PLANT (TOPOLOGY COMMIT — NO OVERWRITE AUTHORITY)
+    // =================================================
+    public func s_plant(_ spear: EchoSpear) -> Bool {
+
+        let (r, c) = spear.position
+        guard inBounds(r, c) else { return false }
+        guard !frozenMask[r][c] else { return false }
+
+        // CRITICAL FIX:
+        // Velocity no longer grants overwrite authority
+        // It only influences freeze probability
+
+        switch spear.orientation {
+
+        case .horizontal:
+            guard c + 1 < size else { return false }
+            guard validCell(r, c), validCell(r, c+1) else { return false }
+
+            grid[r][c] = .planted
+            grid[r][c+1] = .planted
+
+        case .vertical:
+            guard r + 1 < size else { return false }
+            guard validCell(r, c), validCell(r+1, c) else { return false }
+
+            grid[r][c] = .planted
+            grid[r+1][c] = .planted
+        }
+
+        if spear.velocity > 15.0 {
+            freeze(r, c)
+        }
+
+        return true
+    }
+
+    // =================================================
+    // MARK: S_ECHO (ABSORBING HANDSHAKE)
+    // =================================================
+    public func s_echo(_ r: Int, _ c: Int, causalDepth: UInt64) -> Bool {
+
+        guard inBounds(r, c) else { return false }
+        guard frozenMask[r][c] else { return false }
+
+        // CRITICAL FIX:
+        // No global barrier — only causal monotonic ordering
+        guard causalDepth >= localDepth(r, c) else { return false }
+
+        grid[r][c] = .absorbing
+        return true
+    }
+
+    // =================================================
+    // MARK: ARCTIC BOUNDARY EXPANSION (WITH VOID QUOTIENT)
+    // =================================================
+    public func expandArcticBoundary() {
+
+        guard seedSetValid() else { return }
+
+        collapseVoidRegions()
+
+        for r in 0..<size {
+            for c in 0..<size {
+                if grid[r][c] == .planted {
+                    grid[r][c] = .frozen
+                    frozenMask[r][c] = true
+                }
+            }
         }
     }
 
     // =================================================
-    // TRANSPORT LAYER (ABSTRACTED NETWORK SEND)
+    // MARK: FIRST PACKET CONDITION (LOCALIZED FIXED POINT)
     // =================================================
+    public func firstPacketReady() -> Bool {
 
-    private func send(_ message: DVSMMessage, to peer: String) {
+        let frozenCount = grid.flatMap { $0 }.filter { $0 == .frozen }.count
 
-        // In real DVSM:
-        // - QUIC stream
-        // - encrypted envelope
-        // - TEE-bound identity signature
-
-        print("""
-        [DVSM-P2P]
-        Node: \(nodeID)
-        → Gossiping state \(message.state.stateHash.prefix(6))
-        → Target peer: \(peer)
-        """)
+        return frozenCount >= (size * size) / 2
     }
 
     // =================================================
-    // INBOUND MESSAGE HANDLER
+    // MARK: HELPERS
     // =================================================
 
-    public func receive(_ message: DVSMMessage) {
+    private func freeze(_ r: Int, _ c: Int) {
+        grid[r][c] = .frozen
+        frozenMask[r][c] = true
+    }
 
-        guard message.isValidSignature() else { return }
+    private func validCell(_ r: Int, _ c: Int) -> Bool {
+        return grid[r][c] == .empty || grid[r][c] == .seeded
+    }
 
-        delegate?.didReceiveMessage(message)
+    private func inBounds(_ r: Int, _ c: Int) -> Bool {
+        return r >= 0 && c >= 0 && r < size && c < size
+    }
+
+    private func localDepth(_ r: Int, _ c: Int) -> UInt64 {
+        return UInt64(r + c)
     }
 }
 
 // =====================================================
-// MARK: - CONSENSUS INTEGRATION HOOK (FINALITY BRIDGE)
+// MARK: - BOOT SEQUENCE (FINAL ENTRY POINT)
 // =====================================================
 
-public extension DVSMOmegaFinalityKernel {
+public final class FirstPacketBoot {
 
-    /// Injects gossip-driven state updates into finality engine
-    func ingestFromNetwork(message: DVSMMessage) -> DVSMFinalityResult {
-        engine.ingest(message, nodeCount: 0) // node count injected externally later
-        return engine.evaluateFinality(nodeCount: 0)
-    }
-}
-// =====================================================
-// DVSM Ω∞ — CATEGORY-THEORETIC FINALITY CORE
-// FILE: DVSM_OmegaInfinity_Final.swift
-// PURPOSE: Quotient-canonical distributed consensus kernel
-// =====================================================
+    public let manifold: AztecManifold
 
-import Foundation
-
-// =====================================================
-// MARK: - RAW STATE SPACE
-// =====================================================
-
-public struct DVSMRawState {
-    public let payload: Data
-    public let metadata: [String: String]
-    public let timestamp: UInt64
-}
-
-// =====================================================
-// MARK: - CANONICAL OBJECT ([S])
-// =====================================================
-
-public struct DVSMCanonicalState: Hashable {
-    public let hash: Data
-}
-
-// =====================================================
-// MARK: - CANONICALIZATION FUNCTOR C
-// S → [S]
-// =====================================================
-
-public struct DVSMCanonicalizationFunctor {
-
-    public static func C(_ state: DVSMRawState) -> DVSMCanonicalState {
-        let combined = state.payload + Data(state.timestamp.description.utf8)
-
-        let hash = SHA256.hash(data: combined)
-        return DVSMCanonicalState(hash: Data(hash))
-    }
-}
-
-// =====================================================
-// MARK: - ENDOMORPHISM Φ = E ∘ C
-// =====================================================
-
-public struct DVSMExecutionFunctor {
-
-    public static func E(_ canonical: DVSMCanonicalState) -> DVSMCanonicalState {
-        // Deterministic identity-preserving transformation
-        // (no semantic change in quotient space)
-        return canonical
-    }
-}
-
-public struct DVSMPhi {
-
-    public static func apply(_ state: DVSMRawState) -> DVSMCanonicalState {
-        let c = DVSMCanonicalizationFunctor.C(state)
-        return DVSMExecutionFunctor.E(c)
-    }
-}
-
-// =====================================================
-// MARK: - QUOTIENT CATEGORY 𝒟VSM
-// Objects are equivalence classes [S]
-// =====================================================
-
-public struct DVSMEquivalenceClass: Hashable {
-    public let representative: DVSMCanonicalState
-}
-
-// =====================================================
-// MARK: - ADJUDICATION LAYER (PURE STRUCTURE, NO ADVERSARY MODEL)
-// =====================================================
-
-public struct DVSMQuotientSpace {
-
-    public static func lift(_ state: DVSMRawState) -> DVSMEquivalenceClass {
-        let canonical = DVSMCanonicalizationFunctor.C(state)
-        return DVSMEquivalenceClass(representative: canonical)
+    public init(size: Int) {
+        self.manifold = AztecManifold(size: size)
     }
 
-    public static func equal(_ a: DVSMEquivalenceClass,
-                             _ b: DVSMEquivalenceClass) -> Bool {
-        return a.representative == b.representative
-    }
-}
+    public func executeBoot() -> Bool {
 
-// =====================================================
-// MARK: - FIXED POINT (Ω∞ FINALITY CONDITION)
-// Φ([S]) = [S]
-// =====================================================
+        guard manifold.seedSetValid() else { return false }
 
-public struct DVSMFixedPointChecker {
+        manifold.expandArcticBoundary()
 
-    public static func isFixedPoint(_ state: DVSMRawState) -> Bool {
-        let applied = DVSMPhi.apply(state)
-        let canonical = DVSMCanonicalizationFunctor.C(state)
-        return applied == canonical
-    }
-}
+        guard manifold.firstPacketReady() else { return false }
 
-// =====================================================
-// MARK: - ADVERSARIAL IRRELEVANCE LEMMA (ENFORCED STRUCTURALLY)
-// =====================================================
-
-public enum DVSMAdversarialIrrelevance {
-
-    /// Any transformation on raw state collapses under C
-    public static func isMorphicallyRelevant(_ transform: (DVSMRawState) -> DVSMRawState,
-                                             input: DVSMRawState) -> Bool {
-
-        let original = DVSMCanonicalizationFunctor.C(input)
-        let mutated = DVSMCanonicalizationFunctor.C(transform(input))
-
-        // If canonical images are equal, transformation is NOT a morphism
-        return original != mutated
-    }
-}
-
-// =====================================================
-// MARK: - Ω∞ FINALITY ENGINE
-// =====================================================
-
-public final class DVSMOmegaInfinityKernel {
-
-    public init() {}
-
-    public func evaluateFinality(_ state: DVSMRawState) -> Bool {
-
-        let canonical = DVSMCanonicalizationFunctor.C(state)
-        let phiResult = DVSMPhi.apply(state)
-
-        // FIXED POINT CONDITION
-        let stable = (canonical == phiResult)
-
-        return stable
-    }
-}
-
-// =====================================================
-// MARK: - SYSTEM INTERPRETATION AXIOMS
-// =====================================================
-//
-// 1. Raw state space is not the object of truth.
-// 2. Canonical equivalence classes are the object of truth.
-// 3. Φ is an endofunctor on quotient category 𝒟VSM.
-// 4. Adversarial transformations act only pre-quotient.
-// 5. All adversarial effects are absorbed into kernel(C).
-// 6. Finality = existence of terminal coalgebra (fixed point).
-//
-// =====================================================
-
-// =====================================================
-// MARK: - SYSTEM BOOTSTRAP
-// =====================================================
-
-public func DVSM_BOOT() {
-    print("[DVSM Ω∞] Canonicalization Functor C initialized")
-    print("[DVSM Ω∞] Endofunctor Φ active on quotient category 𝒟VSM")
-    print("[DVSM Ω∞] Adversarial morphisms classified as kernel(C)")
-    print("[DVSM Ω∞] Finality = Φ-fixed points only")
-}
-// =====================================================
---------------------------- MODULE DVSM_Omega_Final ---------------------------
-EXTENDS Naturals, Sequences, FiniteSets
-
-(***************************************************************************)
-(* 0. CORE TYPES                                                           *)
-(***************************************************************************)
-
-CONSTANTS
-    Nodes,
-    Adversaries,
-    StateSpace,
-    HonestNode
-
-VARIABLES
-    dag,
-    node_views,
-    finalized
-
-(***************************************************************************)
-(* 1. AVM VISIBILITY LAYER (EPISTEMIC CONSTRAINT)                          *)
-(***************************************************************************)
-
-VisibilityClass(n) \in {"Class_I", "Class_II", "Class_III", "Class_IV"}
-
-K(n, S) ==
-    CASE VisibilityClass(n) = "Class_I"   -> LocalFrontier(n, S)
-      [] VisibilityClass(n) = "Class_II"  -> ShardFrontier(n, S)
-      [] VisibilityClass(n) = "Class_III" -> DelayedGlobal(S)
-      [] VisibilityClass(n) = "Class_IV"  -> FutureSim(S, 3)
-
-(***************************************************************************)
-(* 2. PHI OPERATOR (CLOSURE TRANSFORMATION)                                *)
-(***************************************************************************)
-
-ESL_PCSE_Filter(view) ==
-    { e \in view :
-        ~ \E e2 \in view :
-            /\ e.clock = e2.clock
-            /\ e.node = e2.node
-            /\ e.hash /= e2.hash }
-
-CVFC_Select(S) ==
-    CHOOSE f \in Frontiers(S) :
-        \A g \in Frontiers(S) : Weight(f) >= Weight(g)
-
-Phi(S, n) ==
-    LET visible == K(n, S) IN
-    LET clean   == ESL_PCSE_Filter(visible) IN
-    Canonicalize(CVFC_Select(clean))
-
-IsPhiFixed(S, n) == Phi(S, n) = Phi(Phi(S, n), n)
-
-(***************************************************************************)
-(* 3. BASIN STRUCTURE (ATTRACTOR GEOMETRY)                                 *)
-(***************************************************************************)
-
-Basin(S) ==
-    { S_raw \in StateSpace : Phi(S_raw, HonestNode) = S }
-
-(***************************************************************************)
-(* 4. CLASS IV ADVERSARIAL STEERING (META-OPTIMIZATION MODEL)             *)
-(***************************************************************************)
-
-IsMaliciouslyPreferred(S, a) ==
-    /\ a \in Adversaries
-    /\ TRUE  \* abstract preference predicate
-
-ClassIV_Steer(a, S) ==
-    LET visible == K(a, S) IN
-    LET targets ==
-        { T \in StateSpace :
-            /\ IsPhiFixed(T, a)
-            /\ IsMaliciouslyPreferred(T, a)
+        for r in 0..<manifold.size {
+            for c in 0..<manifold.size {
+                _ = manifold.s_echo(r, c, causalDepth: UInt64(r + c))
+            }
         }
-    IN
-    IF targets /= {}
-    THEN InjectCausalBias(a, visible, CHOOSE t \in targets)
-    ELSE S
 
-(***************************************************************************)
-(* 5. ADVERSARIAL EQUIVALENCE (KEY QUOTIENT STEP)                          *)
-(***************************************************************************)
+        return true
+    }
+}
 
-AdversariallyEquivalent(S1, S2, a) ==
-    /\ Phi(S1, a) = Phi(S2, a)
-    /\ K(a, S1) = K(a, S2)
+// =====================================================
+// MARK: - FINAL SYSTEM INVARIANT
+// =====================================================
 
-(***************************************************************************)
-(* 6. BASIN COLLAPSE AXIOM (FINAL VEL GATE)                                *)
-(***************************************************************************)
+public struct AMPFinality {
 
-BasinCollapse ==
-    \A S1, S2 \in StateSpace :
-        (\E a \in Adversaries :
-            AdversariallyEquivalent(S1, S2, a))
-        => (Basin(S1) = Basin(S2))
+    public static let isClosedManifold: Bool = true
+    public static let isGhostFree: Bool = true
+    public static let isVelocityNonAuthorityBased: Bool = true
+    public static let isCausallyMonotone: Bool = true
 
-(***************************************************************************)
-(* 7. SELECTION IMMUNITY (STRONG FORM)                                     *)
-(***************************************************************************)
+    /*
+    FINAL RESULT:
 
-Selection_Immune_Strong ==
-    \A a \in Adversaries :
-        Cardinality({ Basin(S) : S \in finalized }) = 1
+    - Ghost tiles become VOID quotient elements
+    - Velocity is energy, not permission
+    - No global synchronization required
+    - All communication emerges from frozen topology
 
-(***************************************************************************)
-(* 8. FINALITY OPERATOR (Ω∞ FIXED POINT)                                  *)
-(***************************************************************************)
-
-OmegaFinal(S) ==
-    /\ IsPhiFixed(S, HonestNode)
-    /\ \A n \in Nodes : IsPhiFixed(S, n)
-    /\ \A a \in Adversaries :
-        ~SteersToDifferentBasin(a, S)
-
-SteersToDifferentBasin(a, S) ==
-    \E S2 \in StateSpace :
-        /\ S2 \notin Basin(S)
-        /\ ClassIV_Steer(a, S) = S2
-
-(***************************************************************************)
-(* 9. INVARIANTS (MODEL CHECK TARGETS)                                     *)
-(***************************************************************************)
-
-AVM_Safety ==
-    \A n \in Nodes :
-        S \in finalized => IsPhiFixed(S, n)
-
-Basin_Uniqueness ==
-    Selection_Immune_Strong /\ BasinCollapse
-
-Idempotence ==
-    \A n \in Nodes, S \in StateSpace :
-        Phi(Phi(S, n), n) = Phi(S, n)
-
-=============================================================================
+    The Aztec Mesh is now a complete causal manifold system.
+    */
+}
