@@ -11,6 +11,149 @@
 // =====================================================
 // DVSM — DETERMINSITIC VECTOR STATE MACHINE
 // GITHUB README (SWIFT-EMBEDDED SPECIFICATION)
+
+DVSM-ATOMOS v3 — Distributed Deterministic Causal Operating System
+================================================================================
+
+STATUS:
+Closed Formal Specification / Deterministic Reachability Architecture /
+High-Assurance Distributed Execution System
+
++ Invariant Probe Active (L1–L∞ Execution-State Coherence Monitoring)
++ Runtime/Specification Bisimulation Enforcement Engaged
++ Global Causal Consistency Verification Loop Enabled (Replay ↔ Attractor Equivalence Monitoring)
++ Adversarial Drift Detection Mode: Armed (Byzantine Deviation Threshold Enforcement Online)
++ Canonicalization Layer Mandatory (Embedding-Stable State Representation)
++ Cross-Language Embedding Integrity Mode: Enabled (Swift ↔ Rust ↔ Formal Spec Parity)
+
+--------------------------------------------------------------------------------
+CORE DESIGN PRINCIPLE (EMBEDDING-FIRST SYSTEM MODEL)
+--------------------------------------------------------------------------------
+
+DVSM is defined as a *multi-representation invariant system*:
+
+    Code (Swift/Rust)
+    ≡ Formal Model (Lean / Spec JSON)
+    ≡ Execution Trace (Runtime State)
+    ≡ Embedded Representation (Canonical Vector Space Encoding)
+
+All system artifacts must converge under a shared embedding manifold:
+
+    Φ(state) → ℝⁿ
+
+Where:
+- Φ is the deterministic embedding function
+- ℝⁿ is the canonical state geometry space
+- Equality is defined as embedding equivalence, not raw byte equality
+
+--------------------------------------------------------------------------------
+EMBEDDING INVARIANTS (HARD CONSTRAINTS)
+--------------------------------------------------------------------------------
+
+1. CANONICAL EMBEDDING CONSISTENCY
+   All representations of a state must map to identical embeddings:
+
+       Φ(replay) ≡ Φ(execution)
+
+2. CROSS-LANGUAGE PARITY
+   Swift, Rust, and formal specifications must produce identical embeddings
+   under deterministic compilation and serialization rules.
+
+3. SEMANTIC SEPARATION
+   Semantic Witness data is embedded for audit only:
+
+       weight(semantic) = 0.0 in system dynamics
+       weight(semantic) > 0.0 in audit embedding space only
+
+4. NON-DIVERGENCE RULE
+   If embedding drift > ε:
+       → system enters adversarial quarantine mode
+       → state is excluded from attractor update cycle
+
+--------------------------------------------------------------------------------
+ARCHITECTURAL LAYERS (EMBEDDING VIEW)
+--------------------------------------------------------------------------------
+
+L1 — Execution Kernel
+    Embeds raw deterministic state transitions
+
+L2 — Reachability Manifold
+    Embeds valid state space topology
+
+L3 — Total Order Broadcast
+    Embeds causal sequence ordering vector
+
+L4 — Proof Gate
+    Embeds formal verification certificates into state space
+
+L5 — Dual-Lane Kernel
+    Embeds:
+        - Replay trajectory vector
+        - Attractor convergence vector
+
+L6 — Meta-Governance
+    Embeds rule transformations as invariant-preserving operators
+
+L7 — Hollow-Merkle Layer
+    Embeds structural hashes independent of payload presence
+
+L∞ — Semantic Witness Layer
+    Embeds intent as non-executable metadata vector (audit-only)
+
+--------------------------------------------------------------------------------
+ANTI-CHEAT / ADVERSARIAL MODEL (EMBEDDED FORM)
+--------------------------------------------------------------------------------
+
+Adversarial behavior is not defined by actions, but by embedding divergence:
+
+    adversarial(x) ⇔ ||Φ(x) - Φ_canonical|| > ε
+
+This unifies:
+- Byzantine faults
+- replay tampering
+- semantic poisoning
+- serialization drift
+
+--------------------------------------------------------------------------------
+PORTABILITY CONTRACT
+--------------------------------------------------------------------------------
+
+DVSM guarantees cross-platform equivalence under:
+
++ Deterministic compilation (no runtime nondeterminism allowed in core logic)
++ Canonical encoding (bit-stable serialization layer)
++ Embedding normalization (Φ is platform-invariant)
++ Transport neutrality (QUIC-only causal mesh abstraction)
+
+--------------------------------------------------------------------------------
+SYSTEM FINALITY RULE
+--------------------------------------------------------------------------------
+
+A system state is FINAL if:
+
+    Φ(replay) ≡ Φ(execution)
+AND
+    attractor convergence is stable within ε
+AND
+    no adversarial embedding divergence is detected
+
+--------------------------------------------------------------------------------
+NOTE ON DESIGN PHILOSOPHY
+--------------------------------------------------------------------------------
+
+DVSM is not defined as a blockchain, VM, or consensus algorithm.
+
+It is:
+
+    A deterministic embedding-consistent causal manifold system.
+
+All execution, governance, and history collapse into a single invariant:
+
+    Embedding stability under adversarial conditions.
+
+--------------------------------------------------------------------------------
+END OF SPECIFICATION
+--------------------------------------------------------------------------------
 // =====================================================
 ///
 //
