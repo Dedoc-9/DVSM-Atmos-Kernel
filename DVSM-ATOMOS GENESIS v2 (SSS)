@@ -409,4 +409,454 @@ axiom DVSM_Genesis :
 -- END GENESIS v2
 -- =====================================================
 
-end DVSM
+DVSM-ATOMOS WHITEPAPER v0.1
+Deterministic Causal Metric Reality System
+
+Abstract
+
+DVSM-ATOMOS is a deterministic execution and modeling system that defines 
+“reality” as a quotient structure over causal histories. Instead of treating 
+state as a snapshot or sequence, DVSM defines state as an equivalence class 
+of causally consistent histories under a bounded metric space
+
+
+
+The system integrates:
+
+A metric space over state divergence (dist_H)
+A causal partial-order geometry
+A quotient construction over equivalence classes
+A dynamical flow operator (ΩFlow)
+A settlement operator (Ψ) defining stable partitions
+
+The result is a causally-closed system where identical inputs yield identical structural realities across all substrates.
+
+// =====================================================
+// DVSM-ATOMOS: GENESIS v2.1 ADDENDUM / EVO
+// MODULE: Ω-CONSTITUTION + ABI STABILITY LAYER
+// PURPOSE:
+// Final closure of Ω semantics, attractor stability,
+// deterministic runtime evolution, and Rust↔Swift parity.
+//
+// STATUS:
+// Canonical Unified Addition
+// =====================================================
+
+import Foundation
+
+// =====================================================
+// MARK: - 1. CORE STATE ONTOLOGY
+// =====================================================
+
+/// History-sealed causal object.
+///
+/// IMPORTANT:
+/// A DVSM state is NOT a mutable snapshot.
+/// It is an equivalence representative over:
+///
+///     { causal histories } / Ψ
+///
+public protocol DVSMStateLike {
+
+    /// Identity layer (cryptographic / canonical)
+    var identityHash: Data { get }
+
+    /// Canonical causal quotient fingerprint
+    var causalFingerprint: Data { get }
+
+    /// Residual concurrency ambiguity
+    ///
+    /// χ = entropy of valid linearizations
+    ///
+    /// Preserves causal multiplicity pressure.
+    var causalEntropy: UInt64 { get }
+
+    /// Structural symmetry measure
+    ///
+    /// Higher symmetry = more invariant structure
+    var symmetryScore: UInt64 { get }
+
+    /// Compression / replay complexity
+    ///
+    /// Lower = more stable causal geometry
+    var replayCost: UInt64 { get }
+}
+
+// =====================================================
+// MARK: - 2. FIXED-POINT ABI CONTRACT
+// =====================================================
+
+/// DVSM forbids floating-point authority.
+///
+/// All Ω calculations crossing Rust↔Swift
+/// boundaries MUST use deterministic fixed-point.
+///
+/// SCALE:
+///     Q32.32
+///
+public enum DVSMFixedPoint {
+
+    public static let scale: UInt64 = 1 << 32
+
+    public static func encode(_ value: Double) -> UInt64 {
+        UInt64(value * Double(scale))
+    }
+
+    public static func decode(_ value: UInt64) -> Double {
+        Double(value) / Double(scale)
+    }
+}
+
+// =====================================================
+// MARK: - 3. Ω CONSTITUTION
+// =====================================================
+
+/// Ω is NOT arbitrary.
+///
+/// Ω defines:
+///
+///     causal instability energy
+///
+/// Lower Ω states are:
+/// - more replay stable
+/// - more compressible
+/// - more symmetric
+/// - lower entropy
+///
+public struct DVSMOmegaWeights {
+
+    /// Entropy pressure
+    public let alpha: UInt64
+
+    /// Replay instability pressure
+    public let beta: UInt64
+
+    /// Symmetry reward
+    public let gamma: UInt64
+
+    public init(
+        alpha: UInt64,
+        beta: UInt64,
+        gamma: UInt64
+    ) {
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+    }
+
+    public static let canonical =
+        DVSMOmegaWeights(
+            alpha: 1,
+            beta: 1,
+            gamma: 1
+        )
+}
+
+// =====================================================
+// MARK: - 4. Ω ENERGY FUNCTIONAL
+// =====================================================
+
+public enum DVSMOmega {
+
+    /// Canonical Ω functional
+    ///
+    /// Ω(s) =
+    ///     α·χ
+    ///   + β·replayCost
+    ///   - γ·symmetry
+    ///
+    /// Lower Ω = more stable reality basin
+    ///
+    public static func evaluate(
+        _ state: DVSMStateLike,
+        weights: DVSMOmegaWeights = .canonical
+    ) -> UInt64 {
+
+        let entropyTerm =
+            weights.alpha &* state.causalEntropy
+
+        let replayTerm =
+            weights.beta &* state.replayCost
+
+        let symmetryReward =
+            weights.gamma &* state.symmetryScore
+
+        return entropyTerm
+             &+ replayTerm
+             &- symmetryReward
+    }
+}
+
+// =====================================================
+// MARK: - 5. Ω FLOW RUNTIME
+// =====================================================
+
+/// First executable Ω engine.
+///
+/// Swift does NOT compute truth.
+///
+/// Rust computes:
+/// - causal quotient geometry
+/// - settlement basins
+/// - normalized embeddings
+///
+/// Swift only evaluates:
+/// - deterministic basin descent
+/// - Ω attractor convergence
+///
+public protocol DVSMOmegaFlowRuntime {
+
+    /// Deterministic successor state
+    func evolve(
+        _ state: DVSMStateLike
+    ) -> DVSMStateLike
+}
+
+// =====================================================
+// MARK: - 6. DESCENT CONSTRAINT
+// =====================================================
+
+public extension DVSMOmegaFlowRuntime {
+
+    /// Lyapunov descent condition
+    ///
+    /// Ω(next) ≤ Ω(current)
+    ///
+    func isDescending(
+        current: DVSMStateLike,
+        next: DVSMStateLike
+    ) -> Bool {
+
+        DVSMOmega.evaluate(next)
+        <=
+        DVSMOmega.evaluate(current)
+    }
+}
+
+// =====================================================
+// MARK: - 7. TRAJECTORY ENGINE
+// =====================================================
+
+public struct DVSMTrajectory {
+
+    public let origin: DVSMStateLike
+
+    public init(origin: DVSMStateLike) {
+        self.origin = origin
+    }
+
+    /// Deterministic evolution
+    public func run(
+        flow: DVSMOmegaFlowRuntime,
+        iterations: Int
+    ) -> DVSMStateLike {
+
+        var current = origin
+
+        for _ in 0..<iterations {
+            current = flow.evolve(current)
+        }
+
+        return current
+    }
+}
+
+// =====================================================
+// MARK: - 8. ATTRACTOR BASINS
+// =====================================================
+
+public struct DVSMRealityBasin {
+
+    /// Canonical attractor
+    public let fixedPoint: DVSMStateLike
+
+    /// Stability radius (ε_H)
+    public let epsilon: UInt64
+
+    public init(
+        fixedPoint: DVSMStateLike,
+        epsilon: UInt64
+    ) {
+        self.fixedPoint = fixedPoint
+        self.epsilon = epsilon
+    }
+}
+
+// =====================================================
+// MARK: - 9. BASIN STABILITY THEOREM
+// =====================================================
+
+/// FORMAL SEMANTIC STATEMENT:
+///
+/// If:
+///     1. Ω is bounded below
+///     2. ΩFlow is descending
+///     3. dist_H is complete
+///
+/// Then:
+///     Every trajectory converges toward
+///     a local attractor basin.
+///
+/// This is DVSM's causal Lyapunov principle.
+///
+public enum DVSMBasinTheorem {
+
+    public static let theorem =
+    """
+    Every descending Ω trajectory over a bounded
+    quotient metric space converges toward
+    a stable causal attractor basin.
+    """
+}
+
+// =====================================================
+// MARK: - 10. REALITY DISSIPATION PRINCIPLE
+// =====================================================
+
+/// DVSM does not model "time evolution."
+///
+/// It models:
+///
+///     instability dissipation
+///
+/// Reality stabilizes by minimizing:
+/// - entropy
+/// - replay divergence
+///
+/// while maximizing:
+/// - structural symmetry
+///
+public enum DVSMRealityDissipation {
+
+    public static let principle =
+    """
+    Reality converges by dissipating causal instability
+    through Ω-descending structural evolution.
+    """
+}
+
+// =====================================================
+// MARK: - 11. Ω² META-GOVERNANCE
+// =====================================================
+
+/// Ω² governs evolution of Ω itself.
+///
+/// Prevents:
+/// - chaotic parameter drift
+/// - non-deterministic rule mutation
+/// - unstable basin collapse
+///
+public struct DVSMOmegaMetaConstraints {
+
+    /// Ω weights immutable during active execution
+    public static let noLiveMutation = true
+
+    /// Rule changes require global replay validation
+    public static let requiresReplayVerification = true
+
+    /// Ω² changes require deterministic attestation
+    public static let requiresAttestation = true
+}
+
+// =====================================================
+// MARK: - 12. RUST ABI PARITY CONTRACT
+// =====================================================
+
+/// Canonical Rust ABI mirror.
+///
+/// MUST match:
+///
+/// #[repr(C)]
+///
+/// exactly.
+///
+/// Bit-parity invariant:
+///
+/// Swift bytes == Rust bytes
+///
+@frozen
+public struct DVSMABIState {
+
+    public var identityHash:
+        (UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8)
+
+    public var causalFingerprint:
+        (UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8,
+         UInt8, UInt8, UInt8, UInt8)
+
+    /// Q32.32 fixed-point
+    public var causalEntropy: UInt64
+
+    /// Q32.32 fixed-point
+    public var symmetryScore: UInt64
+
+    /// Q32.32 fixed-point
+    public var replayCost: UInt64
+
+    public init(
+        identityHash: (
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8
+        ),
+        causalFingerprint: (
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8,
+            UInt8, UInt8, UInt8, UInt8
+        ),
+        causalEntropy: UInt64,
+        symmetryScore: UInt64,
+        replayCost: UInt64
+    ) {
+        self.identityHash = identityHash
+        self.causalFingerprint = causalFingerprint
+        self.causalEntropy = causalEntropy
+        self.symmetryScore = symmetryScore
+        self.replayCost = replayCost
+    }
+}
+
+// =====================================================
+// MARK: - 13. SYSTEM COMPLETION STATEMENT
+// =====================================================
+
+public enum DVSMGenesisV21 {
+
+    public static let declaration =
+    """
+    DVSM-ATOMOS Genesis v2.1 defines reality as a
+    deterministic quotient topology over causal histories,
+    evolving under Ω-descending flow toward stable
+    attractor basins under replay-equivalent dynamics.
+
+    Truth is not time.
+    Truth is convergence within causal metric space.
+    """
+}
+
+// =====================================================
+// END GENESIS v2.1
+// =====================================================
