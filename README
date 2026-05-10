@@ -3,6 +3,7 @@
 // Reference Core: (Final Version);
 // https://github.com/Dedoc-9/DVSM-Atmos-Kernel/blob/main/dvsm_atom_core.rs%20(Final)
 // Master Manifest: https://github.com/Dedoc-9/DVSM-Atmos-Kernel/blob/main/Master%20Manifest
+// Genesis Core: https://github.com/Dedoc-9/DVSM-Atmos-Kernel/blob/main/DVSM.FormalGenesis.v1.lean
 // =====================================================
 // DVSM — DETERMINSITIC VECTOR STATE MACHINE
 // GITHUB README (SWIFT-EMBEDDED SPECIFICATION)
