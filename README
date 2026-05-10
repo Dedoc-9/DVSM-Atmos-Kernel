@@ -5,6 +5,7 @@
 // Master Manifest: https://github.com/Dedoc-9/DVSM-Atmos-Kernel/blob/main/Master%20Manifest
 // Genesis Core: https://github.com/Dedoc-9/DVSM-Atmos-Kernel/blob/main/DVSM.FormalGenesis.v1.lean
 // Genesis V2 (SSS): https://github.com/Dedoc-9/DVSM-Atmos-Kernel/blob/main/DVSM-ATOMOS%20GENESIS%20v2%20(SSS)
+// Genesis V3 Kernel + SmokeTester: https://github.com/Dedoc-9/DVSM-Atmos-Kernel/blob/main/DVSM-ATMOS%20MASTER
 // =====================================================
 // DVSM — DETERMINSITIC VECTOR STATE MACHINE
 // GITHUB README (SWIFT-EMBEDDED SPECIFICATION)
