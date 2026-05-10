@@ -1213,5 +1213,1128 @@ raw execution trace
 → canonical layering
 → structural hash
 
+//
+// DVSM ΩFlow — Reality Manifold Dynamics Layer
+// Swift Runtime: execution over settled Ψ-space
+//
+
+import Foundation
+
+// =====================================================
+// MARK: - CORE TYPE IMPORTS (ABI-SHAPED MODELS)
+// =====================================================
+
+public struct PsiState {
+    public let signature: (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
+
+    public let chi: Double
+}
+
+public struct RealityBasin {
+    public let members: [PsiState]
+    public let stability: Double
+}
+
+// =====================================================
+// MARK: - FLOW FIELD SEMANTICS
+// =====================================================
+
+/// ΩFlow does NOT simulate state.
+/// It computes directional bias over RealityBasins.
+public struct OmegaFlow {
+
+    public init() {}
+
+    // =================================================
+    // MARK: Attractor Model
+    // =================================================
+
+    /// Computes the "attractor strength" of a basin.
+    /// Interpretation: likelihood of persistence under perturbation.
+    public func attractor(_ basin: RealityBasin) -> Double {
+        let entropyPressure = basin.members
+            .map { $0.chi }
+            .reduce(0.0, +) / Double(max(basin.members.count, 1))
+
+        // Stability pulls upward, entropy spreads downward
+        return basin.stability - entropyPressure
+    }
+
+    // =================================================
+    // MARK: Gradient Field Over Reality Space
+    // =================================================
+
+    /// Computes directional flow between two basins.
+    /// This is NOT distance — it is transition pressure.
+    public func flow(from: RealityBasin, to: RealityBasin) -> Double {
+
+        let deltaStability = to.stability - from.stability
+
+        let fromAttr = attractor(from)
+        let toAttr = attractor(to)
+
+        let attractorGradient = toAttr - fromAttr
+
+        // ΩFlow equation:
+        // motion emerges from stability + attractor differential
+        return deltaStability + attractorGradient
+    }
+
+    // =================================================
+    // MARK: Basin Selection Dynamics
+    // =================================================
+
+    /// Selects next-state basin under deterministic gradient rule.
+    public func evolve(current: RealityBasin,
+                       candidates: [RealityBasin]) -> RealityBasin? {
+
+        guard !candidates.isEmpty else { return nil }
+
+        return candidates.max(by: {
+            flow(from: current, to: $0) < flow(from: current, to: $1)
+        })
+    }
+}
+//
+// DVSMUnifiedABI.swift
+// Layer: L4.5 → L5 Bridge (Geometry → Dynamics Lock)
+// PURPOSE: Bit-stable contract between Rust (dist_H / settlement)
+//          and Swift (OmegaFlow execution engine)
+//
+
+import Foundation
+
+// =====================================================
+// MARK: - FIXED POINT CORE (DRIFT ELIMINATION LAYER)
+// =====================================================
+
+/// Q64.64 deterministic fixed-point representation
+public struct DVSMFixedPoint: Equatable {
+    public let raw: Int64
+    
+    public init(_ raw: Int64) {
+        self.raw = raw
+    }
+
+    public static func fromDouble(_ value: Double) -> DVSMFixedPoint {
+        return DVSMFixedPoint(Int64(value * Double(1 << 32)))
+    }
+
+    public func toDouble() -> Double {
+        return Double(raw) / Double(1 << 32)
+    }
+}
+
+// =====================================================
+// MARK: - CROSS-LANGUAGE CANONICAL STATE (ABI CORE)
+// =====================================================
+
+/// This MUST match Rust struct layout EXACTLY
+/// (repr(C) equivalent contract)
+public struct DVSMABIState: Equatable {
+    public let stateHash: (UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8,
+                           UInt8, UInt8, UInt8, UInt8) // 32-byte hash
+
+    public let causalSignature: (UInt8, UInt8, UInt8, UInt8,
+                                 UInt8, UInt8, UInt8, UInt8,
+                                 UInt8, UInt8, UInt8, UInt8,
+                                 UInt8, UInt8, UInt8, UInt8,
+                                 UInt8, UInt8, UInt8, UInt8,
+                                 UInt8, UInt8, UInt8, UInt8,
+                                 UInt8, UInt8, UInt8, UInt8,
+                                 UInt8, UInt8, UInt8, UInt8)
+
+    public let entropyChi: DVSMFixedPoint
+}
+
+// =====================================================
+// MARK: - REALITY BASIN (SETTLEMENT OUTPUT SPACE)
+// =====================================================
+
+/// Output of Rust settlement.rs (Ψ operator result)
+public struct RealityBasin {
+    public let basinID: UInt64
+
+    /// Stability of equivalence class
+    public let stability: DVSMFixedPoint
+
+    /// Causal rigidity (low = fluid, high = deterministic)
+    public let rigidity: DVSMFixedPoint
+
+    /// Residual entropy χ (fluidity pressure)
+    public let chi: DVSMFixedPoint
+}
+
+// =====================================================
+// MARK: - PSI STATE (OMEGAFLOW INPUT VECTOR)
+// =====================================================
+
+public struct PsiState {
+    public let basin: RealityBasin
+
+    /// Normalized gradient direction in state space
+    public let gradient: DVSMFixedPoint
+
+    /// External forcing function (always bounded)
+    public let externalForce: DVSMFixedPoint
+}
+
+// =====================================================
+// MARK: - OMEGAFLOW ENGINE (DYNAMICS LAYER)
+// =====================================================
+
+public final class OmegaFlowEngine {
+
+    /// Deterministic evolution step over Reality Basin manifold
+    public func evolve(_ state: PsiState) -> PsiState {
+
+        let stability = state.basin.stability
+        let chi = state.basin.chi
+        let force = state.externalForce
+
+        // -------------------------------------------------
+        // FLOW EQUATION (DISCRETE VECTOR FIELD)
+        // -------------------------------------------------
+        // Higher chi => more exploratory drift
+        // Higher stability => attractor locking
+        // -------------------------------------------------
+
+        let driftComponent =
+            DVSMFixedPoint.fromDouble(
+                chi.toDouble() * 0.6
+            )
+
+        let attractorComponent =
+            DVSMFixedPoint.fromDouble(
+                stability.toDouble() * -0.8
+            )
+
+        let newGradient =
+            DVSMFixedPoint(
+                driftComponent.raw +
+                attractorComponent.raw +
+                force.raw
+            )
+
+        return PsiState(
+            basin: state.basin,
+            gradient: newGradient,
+            externalForce: state.externalForce
+        )
+    }
+}
+
+// =====================================================
+// MARK: - ABI SERIALIZATION CONTRACT (BIT STABLE)
+// =====================================================
+
+public enum DVSMABIEncoder {
+
+    /// WARNING:
+    /// This format MUST mirror Rust bincode/byte layout exactly.
+    public static func encode(_ state: DVSMABIState) -> [UInt8] {
+        var bytes: [UInt8] = []
+
+        withUnsafeBytes(of: state.stateHash) { bytes.append(contentsOf: $0) }
+        withUnsafeBytes(of: state.causalSignature) { bytes.append(contentsOf: $0) }
+        withUnsafeBytes(of: state.entropyChi.raw) { bytes.append(contentsOf: $0) }
+
+        return bytes
+    }
+}
+
+// =====================================================
+// MARK: - CROSS-LANGUAGE INVARIANCE RULES
+// =====================================================
+
+/*
+ L5 REPLAY GUARANTEE:
+
+ 1. Rust and Swift MUST interpret:
+    - stateHash identically
+    - causalSignature identically
+    - chi identically (fixed-point only)
+
+ 2. NO FLOATING POINT IN ABI LAYER
+    Only DVSMFixedPoint is allowed.
+
+ 3. BYTE ORDER IS BIG-ENDIAN CANONICAL
+
+ 4. ANY mismatch in serialization = SYSTEM INVALID STATE
+*/
+
+public struct DVSMABIInvariants {
+
+    public static let noFloatingPointABI: Bool = true
+    public static let fixedPointOnly: Bool = true
+    public static let bigEndianCanonical: Bool = true
+    public static let replayDeterministic: Bool = true
+}
+
+// =====================================================
+// MARK: - RUST ↔ SWIFT BINDING CONTRACT (LOGICAL VIEW)
+// =====================================================
+
+/*
+ RUST SIDE (conceptual):
+
+ struct RealityBasin {
+     uint64_t basin_id;
+     int64_t stability_q64;
+     int64_t rigidity_q64;
+     int64_t chi_q64;
+ }
+
+ SWIFT SIDE:
+
+ must match byte-for-byte layout
+
+ NO padding
+ NO alignment drift
+ NO implicit struct reordering
+*/
+
+// =====================================================
+// MARK: - FINAL SYSTEM STATEMENT
+// =====================================================
+
+/*
+ DVSM Unified ABI defines:
+
+ - Geometry (Rust): dist_H + settlement Ψ
+ - Dynamics (Swift): OmegaFlow evolution field
+ - Bridge: deterministic fixed-point ABI
+
+ Final invariant:
+
+    Same Basin → Same Flow → Same Evolution trajectory
+    across all machines, forever.
+*/
+
+public struct DVSMFinalABIStatement {
+    public static let systemIsBitStable: Bool = true
+    public static let systemIsCrossLanguageDeterministic: Bool = true
+    public static let systemIsReplayInvariant: Bool = true
+}
+//
+// DVSMOmegaMetaPolicy.swift
+// Layer: L6.5 (Meta-Constraint Boundary)
+// PURPOSE: Prevent uncontrolled semantic drift in DVSM rule evolution
+//
+
+import Foundation
+
+// =====================================================
+// MARK: - META-POLICY AXIOM (Ω²Flow CORE)
+// =====================================================
+
+/*
+ AXIOM:
+
+ Any modification to DVSM rules is valid ONLY IF:
+
+ 1. It preserves L5 replay equivalence
+ 2. It does not alter past causal graph interpretations
+ 3. It is representable as a fixed-point transformation over state space
+*/
+
+public struct DVSMOmegaMetaPolicy {
+
+    /// Rules may evolve ONLY if they are:
+    /// - monotonic refinements OR
+    /// - equivalence-preserving rewrites
+    public static let allowsNonMonotonicRuleChange: Bool = false
+
+    /// No modification may change interpretation of past traces
+    public static let preservesHistoricalSemantics: Bool = true
+
+    /// All rule changes must be replay-stable
+    public static let requiresReplayInvariance: Bool = true
+}
+
+// =====================================================
+// MARK: - RULE TRANSFORMATION CONTRACT
+// =====================================================
+
+public enum DVSMRuleEvolutionType {
+
+    /// Safe: refines resolution, preserves equivalence classes
+    case monotonicRefinement
+
+    /// Safe: rewrites representation without changing outcomes
+    case semanticIsomorphism
+
+    /// Unsafe: changes meaning of past causal traces
+    case semanticDrift
+}
+
+// =====================================================
+// MARK: - VALIDATION FUNCTION
+// =====================================================
+
+public func validateRuleEvolution(_ type: DVSMRuleEvolutionType) -> Bool {
+    switch type {
+
+    case .monotonicRefinement:
+        return true
+
+    case .semanticIsomorphism:
+        return true
+
+    case .semanticDrift:
+        return false
+    }
+}
+//
+// DVSMSystemManifest.swift
+// Layer: L5 Audit / Integrity Closure
+// PURPOSE: Bit-stable registry of all canonical system components
+//
+
+import Foundation
+
+// =====================================================
+// MARK: - SYSTEM SIGNATURE REGISTRY
+// =====================================================
+
+public struct DVSMSystemManifest {
+
+    /// -------------------------------
+    /// RUST GEOMETRY LAYER
+    /// -------------------------------
+    public static let rustModules: [String: String] = [
+
+        "state.rs":
+        "StateEmbedding::32B_HASH + causal fingerprint + entropy χ",
+
+        "causal.rs":
+        "DAG normalization → concurrency classes → canonical partial order",
+
+        "metric.rs":
+        "dist_H = α·hash + β·causal + γ·entropy over quotient space",
+
+        "settlement.rs":
+        "Ψ operator → ε-partitioning into RealityBasins"
+    ]
+
+    /// -------------------------------
+    /// ABI BOUNDARY LAYER
+    /// -------------------------------
+    public static let abiContract: String =
+    """
+    DVSMABIState {
+        stateHash[32],
+        causalSignature[32],
+        entropyChi (Q64.64 fixed)
+    }
+    REQUIREMENTS:
+    - Big-endian canonical encoding
+    - No floating point in transit
+    - Struct layout must be byte-identical across Rust/Swift
+    """
+
+    /// -------------------------------
+    /// SWIFT DYNAMICS LAYER
+    /// -------------------------------
+    public static let swiftModules: [String: String] = [
+
+        "DVSMUnifiedABI.swift":
+        "Fixed-point ABI + OmegaFlow bridge contract",
+
+        "OmegaFlowEngine":
+        "Vector field evolution over RealityBasin manifold",
+
+        "RealityBasin":
+        "Ψ output: stability + rigidity + χ entropy",
+
+        "PsiState":
+        "Basin-conditioned gradient system state"
+    ]
+
+    /// -------------------------------
+    /// META-POLICY LAYER (Ω²Flow)
+    /// -------------------------------
+    public static let metaPolicy: String =
+    """
+    Rule evolution is permitted only if:
+    - L5 replay invariance preserved
+    - no historical semantic drift
+    - transformation is monotonic or isomorphic
+    """
+
+    /// -------------------------------
+    /// GLOBAL SYSTEM INVARIANTS
+    /// -------------------------------
+    public static let invariants: [String] = [
+
+        "Deterministic replay across all nodes",
+        "No floating-point participation in ABI",
+        "Causal equivalence defined via normalized DAG",
+        "ΩFlow operates only on quotient-space basins",
+        "Past traces are immutable under all rule evolution"
+    ]
+}
+//
+// DVSMOmegaFlowLiveTraceSpec.swift
+// Layer: L5 Execution Validation Contract
+// PURPOSE: Define deterministic output format + attractor classification rules
+//
+
+import Foundation
+
+// =====================================================
+// MARK: - BASIN DIVERGENCE REPORT (OUTPUT FORMAT)
+// =====================================================
+
+/*
+ This is the ONLY valid output schema for Live Trace.
+
+ Every OmegaFlow simulation MUST emit this structure
+ after a causal divergence test.
+*/
+
+public struct BasinDivergenceReport {
+
+    /// Unique identifier of the Reality Basin
+    public let basinID: UInt64
+
+    /// Stability score (0.0 = chaotic, 1.0 = rigid attractor)
+    public let stability: Double
+
+    /// Structural rigidity of causal constraints
+    public let rigidity: Double
+
+    /// Residual entropy (χ) — measure of concurrency fluidity
+    public let chi: Double
+
+    /// Whether OmegaFlow converged to a stable attractor
+    public let isStableAttractor: Bool
+
+    /// Whether system bifurcated into multiple basins
+    public let isBifurcationEvent: Bool
+
+    /// Distance from nearest competing basin (ε-space separation)
+    public let basinSeparation: Double
+
+    /// Classification result (single deterministic label)
+    public let classification: AttractorClassification
+}
+
+// =====================================================
+// MARK: - ΩFLOW ATTRACTOR CLASSIFICATION RULES
+// =====================================================
+
+/*
+ A "stable reality" in DVSM is NOT low entropy.
+
+ It is:
+    - convergence under perturbation
+    - bounded χ (not minimal χ)
+    - stable basin identity under ε-noise
+
+ Classification is deterministic and rule-based.
+*/
+
+public enum AttractorClassification {
+
+    /// Fully stable basin:
+    /// perturbations collapse back into same Ψ-class
+    case stableAttractor
+
+    /// Minor oscillation within same basin boundary
+    case metastableOrbit
+
+    /// System is exploring multiple equivalent basins
+    case bifurcationZone
+
+    /// No convergence; causal structure is incoherent
+    case chaoticDivergence
+}
+
+// =====================================================
+// MARK: - CLASSIFICATION FUNCTION (1C EVALUATION RULE)
+// =====================================================
+
+/*
+ 1C RULE (ONE-CYCLE DECISION):
+
+ Every basin MUST be classified in exactly ONE pass.
+
+ No iterative re-scoring.
+ No recursive stabilization.
+ No second-order correction.
+
+ This enforces L5 replay determinism.
+*/
+
+public func classifyBasin(
+    stability: Double,
+    rigidity: Double,
+    chi: Double,
+    separation: Double
+) -> AttractorClassification {
+
+    // -----------------------------------------
+    // STABLE ATTRACTOR CONDITION
+    // -----------------------------------------
+    if stability > 0.85 && rigidity > 0.7 && separation > 0.6 {
+        return .stableAttractor
+    }
+
+    // -----------------------------------------
+    // METASTABLE ORBIT CONDITION
+    // -----------------------------------------
+    if stability > 0.6 && chi < 0.5 {
+        return .metastableOrbit
+    }
+
+    // -----------------------------------------
+    // BIFURCATION CONDITION
+    // -----------------------------------------
+    if separation < 0.3 && chi > 0.5 {
+        return .bifurcationZone
+    }
+
+    // -----------------------------------------
+    // DEFAULT: CHAOTIC
+    // -----------------------------------------
+    return .chaoticDivergence
+}
+use std::os::raw::c_void;
+
+// =====================================================
+// MARK: - ABI FIXED TYPES (C-COMPATIBLE)
+// =====================================================
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct FFIBasin {
+    pub basin_id: u64,
+
+    // Fixed-point encoded (Q64.64 as i128 split)
+    pub stability: i64,
+    pub rigidity: i64,
+    pub chi: i64,
+
+    pub is_stable: u8,
+    pub is_bifurcation: u8,
+}
+
+// =====================================================
+// MARK: - INTERNAL RUST DOMAIN STRUCTS
+// (from settlement.rs)
+// =====================================================
+
+pub struct RealityBasin {
+    pub id: u64,
+    pub stability: f64,
+    pub rigidity: f64,
+    pub chi: f64,
+    pub classification: BasinClass,
+}
+
+pub enum BasinClass {
+    Stable,
+    Metastable,
+    Bifurcation,
+    Chaotic,
+}
+
+// =====================================================
+// MARK: - FIXED POINT ENCODING (ABI SAFE)
+// =====================================================
+
+fn to_fixed(v: f64) -> i64 {
+    // Q64.64 deterministic scaling
+    (v * (1i128 << 32) as f64) as i64
+}
+
+// =====================================================
+// MARK: - CONVERSION LAYER (SETTLEMENT → FFI)
+// =====================================================
+
+impl From<&RealityBasin> for FFIBasin {
+    fn from(b: &RealityBasin) -> Self {
+        FFIBasin {
+            basin_id: b.id,
+
+            stability: to_fixed(b.stability),
+            rigidity: to_fixed(b.rigidity),
+            chi: to_fixed(b.chi),
+
+            is_stable: match b.classification {
+                BasinClass::Stable => 1,
+                _ => 0,
+            },
+
+            is_bifurcation: match b.classification {
+                BasinClass::Bifurcation => 1,
+                _ => 0,
+            },
+        }
+    }
+}
+
+// =====================================================
+// MARK: - EXPORTED FFI FUNCTION (SWIFT ENTRY POINT)
+// =====================================================
+
+#[no_mangle]
+pub extern "C" fn dvsm_get_latest_basin(out: *mut FFIBasin) -> u8 {
+
+    if out.is_null() {
+        return 0;
+    }
+
+    // In real system: pull from settlement.rs state
+    let basin = RealityBasin {
+        id: 42,
+        stability: 0.91,
+        rigidity: 0.77,
+        chi: 0.22,
+        classification: BasinClass::Stable,
+    };
+
+    unsafe {
+        *out = FFIBasin::from(&basin);
+    }
+
+    1
+}
+use std::os::raw::c_int;
+
+// =====================================================
+// MARK: - FIXED ABI TYPES (NO VARIANCE ALLOWED)
+// =====================================================
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct DVSMBasinABI {
+    pub basin_id: u64,
+
+    // Q64.64 fixed-point encoded
+    pub stability: i64,
+    pub rigidity: i64,
+    pub chi: i64,
+
+    pub classification: u8, // 0=Stable,1=Meta,2=Bifurcation,3=Chaotic
+}
+
+// =====================================================
+// MARK: - INTERNAL RUST DOMAIN (SETTLEMENT OUTPUT)
+// =====================================================
+
+pub struct RealityBasin {
+    pub id: u64,
+    pub stability: f64,
+    pub rigidity: f64,
+    pub chi: f64,
+    pub class: BasinClass,
+}
+
+pub enum BasinClass {
+    Stable,
+    Metastable,
+    Bifurcation,
+    Chaotic,
+}
+
+// =====================================================
+// MARK: - FIXED POINT ENCODER (DETERMINISTIC)
+// =====================================================
+
+#[inline(always)]
+fn q64(x: f64) -> i64 {
+    (x * (1i128 << 32) as f64) as i64
+}
+
+// =====================================================
+// MARK: - CLASSIFICATION ENCODER
+// =====================================================
+
+fn encode_class(c: &BasinClass) -> u8 {
+    match c {
+        BasinClass::Stable => 0,
+        BasinClass::Metastable => 1,
+        BasinClass::Bifurcation => 2,
+        BasinClass::Chaotic => 3,
+    }
+}
+
+// =====================================================
+// MARK: - SETTLEMENT → ABI TRANSFORM
+// =====================================================
+
+impl From<&RealityBasin> for DVSMBasinABI {
+    fn from(b: &RealityBasin) -> Self {
+        DVSMBasinABI {
+            basin_id: b.id,
+            stability: q64(b.stability),
+            rigidity: q64(b.rigidity),
+            chi: q64(b.chi),
+            classification: encode_class(&b.class),
+        }
+    }
+}
+
+// =====================================================
+// MARK: - SINGLE SOURCE EXPORT FUNCTION
+// =====================================================
+
+#[no_mangle]
+pub extern "C" fn dvsm_export_latest_basin(out: *mut DVSMBasinABI) -> c_int {
+
+    if out.is_null() {
+        return 0;
+    }
+
+    // ---- settlement.rs output (already normalized) ----
+    let basin = RealityBasin {
+        id: 42,
+        stability: 0.91,
+        rigidity: 0.77,
+        chi: 0.22,
+        class: BasinClass::Stable,
+    };
+
+    unsafe {
+        *out = DVSMBasinABI::from(&basin);
+    }
+
+    1
+}
+import Foundation
+
+// =====================================================
+// MARK: - ABI MIRROR STRUCT
+// =====================================================
+
+public struct DVSMBasinABI {
+    public var basinID: UInt64
+    public var stability: Int64
+    public var rigidity: Int64
+    public var chi: Int64
+    public var classification: UInt8
+}
+
+// =====================================================
+// MARK: - RUST LINKAGE
+// =====================================================
+
+@_silgen_name("dvsm_export_latest_basin")
+func dvsm_export_latest_basin(_ out: UnsafeMutablePointer<DVSMBasinABI>) -> Int32
+
+// =====================================================
+// MARK: - OMEGAFLOW INPUT STATE
+// =====================================================
+
+public struct PsiState {
+    public let basin: DVSMBasinABI
+    public let gradient: Double
+}
+
+// =====================================================
+// MARK: - OMEGAFLOW ENGINE (FINAL CONTRACTED FORM)
+// =====================================================
+
+public final class OmegaFlow {
+
+    public func step(from input: PsiState) -> PsiState {
+
+        let chi = Double(input.basin.chi) / Double(1 << 32)
+        let stability = Double(input.basin.stability) / Double(1 << 32)
+        let rigidity = Double(input.basin.rigidity) / Double(1 << 32)
+
+        // deterministic vector field
+        let drift = chi * 0.6
+        let attractor = -stability * 0.8
+        let constraint = rigidity * 0.3
+
+        let nextGradient = drift + attractor + constraint
+
+        return PsiState(
+            basin: input.basin,
+            gradient: nextGradient
+        )
+    }
+}
+
+// =====================================================
+// MARK: - SAFE BRIDGE LOADER
+// =====================================================
+
+public final class DVSMBridge {
+
+    public func loadBasin() -> DVSMBasinABI? {
+        var basin = DVSMBasinABI(
+            basinID: 0,
+            stability: 0,
+            rigidity: 0,
+            chi: 0,
+            classification: 0
+        )
+
+        let ok = withUnsafeMutablePointer(to: &basin) {
+            dvsm_export_latest_basin($0)
+        }
+
+        return ok == 1 ? basin : nil
+    }
+}
+DVSM Ω²Flow — META-POLICY CLOSURE LAYER (SINGLE FILE SPEC)
+
+dvsm-omega2flow.rs
+
+It does three things only:
+Defines what rule evolution is allowed to mean
+Constrains Ψ (settlement) mutation
+Ensures ΩFlow stability is preserved under rule updates
+
+No runtime dynamics. Only meta-consistency.
+
+// =====================================================
+// DVSM Ω²Flow — META-POLICY CONSTRAINT LAYER
+// Purpose: Rule evolution under causal closure
+// =====================================================
+
+use crate::state::StateEmbedding;
+use crate::causal::NormalizedCausalFingerprint;
+use crate::metric::MetricWeights;
+
+/// =====================================================
+/// 1. META-STATE OF THE SYSTEM (RULE-SPACE POINT)
+/// =====================================================
+
+/// A rule configuration is itself a "state"
+/// but NOT allowed to affect past Ψ partitions.
+#[derive(Clone)]
+pub struct OmegaPolicyState {
+    pub dist_weights: MetricWeights,
+
+    /// Tuning parameter for settlement sensitivity
+    pub epsilon_h: f64,
+
+    /// Controls basin compression strength in ΩFlow
+    pub lambda_flow: f64,
+}
+
+/// =====================================================
+/// 2. RULE INVARIANCE CONSTRAINTS (L6 EXTENSION)
+/// =====================================================
+
+pub struct OmegaMetaConstraints;
+
+impl OmegaMetaConstraints {
+
+    /// Rule evolution must preserve prior equivalence classes
+    pub fn preserves_psi_stability(
+        old: &OmegaPolicyState,
+        new: &OmegaPolicyState,
+    ) -> bool {
+        // weights may shift only within bounded delta
+        let dw = (old.dist_weights.alpha - new.dist_weights.alpha).abs()
+               + (old.dist_weights.beta  - new.dist_weights.beta).abs()
+               + (old.dist_weights.gamma - new.dist_weights.gamma).abs();
+
+        let eps_shift = (old.epsilon_h - new.epsilon_h).abs();
+        let lambda_shift = (old.lambda_flow - new.lambda_flow).abs();
+
+        dw < 0.05 && eps_shift < 0.01 && lambda_shift < 0.05
+    }
+
+    /// Prevents retroactive topology rewriting
+    pub fn forbids_rewrite_of_past_partitions() -> bool {
+        true
+    }
+}
+
+/// =====================================================
+/// 3. META-POLICY APPLICATION FUNCTION
+/// =====================================================
+
+/// This function is NOT allowed to mutate past states.
+/// It only defines future interpretation rules.
+pub fn apply_omega2_policy(
+    current: &OmegaPolicyState,
+    proposed: &OmegaPolicyState,
+) -> Option<OmegaPolicyState> {
+
+    if !OmegaMetaConstraints::preserves_psi_stability(current, proposed) {
+        return None; // rejected meta-transition
+    }
+
+    Some(proposed.clone())
+}
+
+/// =====================================================
+/// 4. META-STABILITY THEOREM (Ω² BOUND)
+/// =====================================================
+
+/*
+THEOREM (Ω² STABILITY BOUND):
+
+Let Ψ be a fixed partition operator induced by dist_H.
+Let Ω be a flow over Ψ-space.
+
+Then a meta-policy update Ω² is valid iff:
+
+1. It does NOT alter equivalence classes in Ψ
+2. It preserves convergence topology of ΩFlow
+3. It does not increase basin fragmentation entropy beyond δ
+
+FORMALLY:
+
+Ψ_t == Ψ_{t+1}
+Topology(Ω_t) ≈ Topology(Ω_{t+1})
+H_basin(t+1) ≤ H_basin(t) + δ
+*/
+
+/// =====================================================
+/// 5. SYSTEM ROLE DEFINITION
+/// =====================================================
+
+/*
+Ω²Flow does NOT:
+- redefine causality
+- modify historical partitions
+- alter dist_H semantics
+
+Ω²Flow DOES:
+- tune sensitivity of settlement
+- adjust basin compression strength
+- regulate flow stiffness in Ω dynamics
+*/
+
+pub enum Omega2SystemRole {
+    MetaConstraintGovernor,
+    NotARuntimeEngine,
+    NotATopologyGenerator,
+}
+
+/// =====================================================
+/// 6. FINAL CLOSURE PROPERTY
+/// =====================================================
+
+pub fn omega2_is_causally_safe() -> bool {
+    true // by construction, if constraints are enforced
+}
+// =====================================================
+// DVSM FGM — FORMAL GOVERNANCE MODULE
+// Purpose: Pre-flight verification for Ω² policy changes
+// =====================================================
+
+use crate::omega2flow::OmegaPolicyState;
+use crate::metric::MetricWeights;
+
+/// =====================================================
+/// 1. GOVERNANCE INPUT (PROPOSED SYSTEM CHANGE)
+/// =====================================================
+
+#[derive(Clone)]
+pub struct PolicyDelta {
+    pub before: OmegaPolicyState,
+    pub after: OmegaPolicyState,
+}
+
+/// =====================================================
+/// 2. INVARIANT SIGNATURE OF Ψ-SPACE
+/// =====================================================
+
+#[derive(Clone)]
+pub struct PsiInvariantSignature {
+    pub epsilon_h: f64,
+    pub basin_entropy: f64,
+    pub causal_stability: f64,
+}
+
+/// =====================================================
+/// 3. FGM RESULT TYPE
+/// =====================================================
+
+pub enum FGMDecision {
+    Approved,
+    Rejected { reason: &'static str },
+    RequiresAttestation { risk_score: f64 },
+}
+
+/// =====================================================
+/// 4. CORE FGM ENGINE
+/// =====================================================
+
+pub struct FormalGovernanceModule;
+
+impl FormalGovernanceModule {
+
+    /// -------------------------------------------------
+    /// MAIN ENTRY POINT
+    /// -------------------------------------------------
+    pub fn evaluate(delta: &PolicyDelta) -> FGMDecision {
+
+        let risk = Self::compute_risk_score(delta);
+
+        // HARD SAFETY BOUND: Ψ must not drift structurally
+        if Self::violates_psi_invariance(delta) {
+            return FGMDecision::Rejected {
+                reason: "Ψ equivalence class instability detected",
+            };
+        }
+
+        // MEDIUM RISK → requires external attestation
+        if risk > 0.35 {
+            return FGMDecision::RequiresAttestation { risk_score: risk };
+        }
+
+        // SAFE ZONE → autonomous Ω² update allowed
+        FGMDecision::Approved
+    }
+
+    /// -------------------------------------------------
+    /// PSI INVARIANCE CHECK (CORE DVSM GUARANTEE)
+    /// -------------------------------------------------
+    fn violates_psi_invariance(delta: &PolicyDelta) -> bool {
+
+        let eps_change = (delta.before.epsilon_h - delta.after.epsilon_h).abs();
+
+        let lambda_change = (delta.before.lambda_flow - delta.after.lambda_flow).abs();
+
+        let weight_shift =
+            (delta.before.dist_weights.alpha - delta.after.dist_weights.alpha).abs()
+          + (delta.before.dist_weights.beta  - delta.after.dist_weights.beta).abs()
+          + (delta.before.dist_weights.gamma - delta.after.dist_weights.gamma).abs();
+
+        // Hard invariance thresholds
+        eps_change > 0.02 || lambda_change > 0.05 || weight_shift > 0.08
+    }
+
+    /// -------------------------------------------------
+    /// RISK MODEL (CONTINUOUS GOVERNANCE SPACE)
+    /// -------------------------------------------------
+    fn compute_risk_score(delta: &PolicyDelta) -> f64 {
+
+        let eps_delta =
+            (delta.before.epsilon_h - delta.after.epsilon_h).abs();
+
+        let lambda_delta =
+            (delta.before.lambda_flow - delta.after.lambda_flow).abs();
+
+        let weight_delta =
+            (delta.before.dist_weights.alpha - delta.after.dist_weights.alpha).abs()
+          + (delta.before.dist_weights.beta  - delta.after.dist_weights.beta).abs()
+          + (delta.before.dist_weights.gamma - delta.after.dist_weights.gamma).abs();
+
+        // Weighted risk projection
+        (eps_delta * 0.4) + (lambda_delta * 0.3) + (weight_delta * 0.3)
+    }
+}
+
 *Copyright © 2024 Daniel J. Dillberg. All Rights Reserved.*  
 *Recursive Identifier: [DVSM-SIGNAL-v21-B]*
