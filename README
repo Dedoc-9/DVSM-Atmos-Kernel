@@ -97,7 +97,11 @@
 // Noise is NOT data failure.
 // Noise is "unmodeled state divergence from canonical execution".
 //
-//case .semantic:
+// Attractor Solver behavior (correct formalization)
+
+Attractor = lim(t→∞) State(System_t):
+
+case .semantic:
 
     // Step 1: Strip non-binding payload
     // Removes influence-carrying semantics while preserving structural traceability
