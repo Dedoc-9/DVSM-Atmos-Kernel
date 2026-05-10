@@ -16,12 +16,26 @@
 // PROJECT NAME:
 // DVSM v∞ — Reality-Stable Deterministic Execution System
 //
+// =====================================================
+// DVSM-ATOMOS: PORTABILITY & DEPLOYMENT CONTRACT LAYER
+// =====================================================
+//
 // STATUS:
 // Closed Formal Specification / Deterministic Reachability Architecture / High-Assurance Distributed Execution System
 // + Invariant Probe Active (L1–L∞ Execution-State Coherence Monitoring)
 // + Runtime/Specification Bisimulation Enforcement Engaged
 // + Global Causal Consistency Verification Loop Enabled (Replay ↔ Attractor Equivalence Monitoring)
 // + Adversarial Drift Detection Mode: Armed (Byzantine Deviation Threshold Enforcement Online)
+// + Canonicalization Layer Mandatory for Cross-Platform Determinism
+// + Hardware Abstraction Boundary Locked (TEE / Non-TEE Execution Segregation)
+// + Transport Layer Normalization Active (QUIC-only Swarm Interface Contract)
+// + State Serialization Standardized (Bit-Stable, Endian-Invariant Encoding)
+// + Cross-Shard Execution Portability Guarantee Enabled (Deterministic Rehydration Contract)
+// + Runtime Equivalence Class Enforcement (Execution must be replay-identical across all supported nodes)
+//
+// =====================================================
+// DVSM-ATOMOS: PORTABILITY & DEPLOYMENT CONTRACT LAYER
+// =====================================================
 //
 /**
  # ARCHITECTURAL ARTIFACTS
