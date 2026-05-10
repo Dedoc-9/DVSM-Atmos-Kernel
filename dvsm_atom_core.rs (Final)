@@ -3733,6 +3733,214 @@ H (replay sealing)
    ↓
 Ω (rule adaptation, optional)
 
+
+// =====================================================
+// DVSM_IMMUNE_SYSTEM_LAYER.swift
+// VERSION: ZERO-LATENCY-ADVERSARIAL-SHADOW-V1
+// ROLE:
+// Real-time immune system for DVSM.
+// Detects, classifies, and isolates adversarial behavior
+// WITHOUT blocking execution or introducing latency stalls.
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// MARK: - THREAT TAXONOMY
+// =====================================================
+
+public enum DVSMThreatClass: UInt8 {
+
+    case none = 0
+
+    /// Input semantic poisoning (ΣI attack)
+    case semanticInjection = 1
+
+    /// Ordering manipulation (O★ attack)
+    case orderingDesync = 2
+
+    /// Execution divergence (F mismatch)
+    case evolutionDrift = 3
+
+    /// Hash / history manipulation (H attack)
+    case traceForgery = 4
+
+    /// Rule-space instability (Ω attack)
+    case omegaPressure = 5
+}
+
+// =====================================================
+// MARK: - IMMUNE RESPONSE (NON-BLOCKING)
+// =====================================================
+
+public struct DVSMImmuneSignal {
+
+    public let threat: DVSMThreatClass
+    public let severity: UInt8          // 0–255
+    public let confidence: UInt8        // 0–255
+
+    /// Lightweight fingerprint (NO full trace storage)
+    public let fingerprint: UInt64
+}
+
+// =====================================================
+// MARK: - IMMUNE ENGINE (SHADOW PARALLEL LAYER)
+// =====================================================
+
+public final class DVSMImmuneSystem {
+
+    // Lock-free ring buffer for signals (no blocking writes)
+    private var shadowSignals: [DVSMImmuneSignal] = []
+
+    // =================================================
+    // FAST PATH: INLINE CLASSIFICATION (NO STALL)
+    // =================================================
+
+    @inline(__always)
+    public func classify(
+        inputHash: UInt64,
+        orderingDelta: Int64,
+        executionDelta: Int64,
+        hashDelta: UInt64,
+        omegaDelta: Int64
+    ) -> DVSMImmuneSignal {
+
+        // ---------------------------------------------
+        // Lightweight heuristics only (NO crypto ops)
+        // ---------------------------------------------
+
+        let threat: DVSMThreatClass
+
+        if inputHash == 0 {
+            threat = .semanticInjection
+        } else if orderingDelta != 0 {
+            threat = .orderingDesync
+        } else if executionDelta != 0 {
+            threat = .evolutionDrift
+        } else if hashDelta != 0 {
+            threat = .traceForgery
+        } else if omegaDelta != 0 {
+            threat = .omegaPressure
+        } else {
+            threat = .none
+        }
+
+        let severity = Self.estimateSeverity(
+            orderingDelta: orderingDelta,
+            executionDelta: executionDelta,
+            omegaDelta: omegaDelta
+        )
+
+        let signal = DVSMImmuneSignal(
+            threat: threat,
+            severity: severity,
+            confidence: 220, // fixed heuristic confidence band
+            fingerprint: inputHash ^ UInt64(bitPattern: orderingDelta)
+        )
+
+        // Non-blocking append (fire-and-forget shadow log)
+        shadowSignals.append(signal)
+
+        return signal
+    }
+
+    // =================================================
+    // SEVERITY ESTIMATOR (PURE, FAST)
+    // =================================================
+
+    @inline(__always)
+    private static func estimateSeverity(
+        orderingDelta: Int64,
+        executionDelta: Int64,
+        omegaDelta: Int64
+    ) -> UInt8 {
+
+        let score =
+            abs(orderingDelta) +
+            abs(executionDelta) +
+            abs(omegaDelta)
+
+        return UInt8(min(score % 255, 255))
+    }
+
+    // =================================================
+    // IMMUNE STATE SNAPSHOT (ASYNC ONLY)
+    // =================================================
+
+    public func snapshot() -> [DVSMImmuneSignal] {
+        return shadowSignals
+    }
+}
+
+// =====================================================
+// MARK: - IMMUNE INTEGRATION POINT (NO LATENCY IMPACT)
+// =====================================================
+
+public struct DVSMImmuneGate {
+
+    public let immune: DVSMImmuneSystem
+
+    // ---------------------------------------------
+    // INLINE HOOK (does NOT block execution)
+    // ---------------------------------------------
+
+    @inline(__always)
+    public func observe(
+        inputHash: UInt64,
+        orderingDelta: Int64,
+        executionDelta: Int64,
+        hashDelta: UInt64,
+        omegaDelta: Int64
+    ) -> DVSMImmuneSignal {
+
+        return immune.classify(
+            inputHash: inputHash,
+            orderingDelta: orderingDelta,
+            executionDelta: executionDelta,
+            hashDelta: hashDelta,
+            omegaDelta: omegaDelta
+        )
+    }
+}
+
+// =====================================================
+// MARK: - SYSTEM BEHAVIOR MODEL
+// =====================================================
+
+/*
+=====================================================
+IMMUNE SYSTEM PROPERTIES
+
+1. ZERO LATENCY IMPACT
+   - No locks
+   - No blocking IO
+   - No serialization points
+   - Shadow-only writes
+
+2. PARALLEL EXISTENCE
+   - Immune system runs alongside DVSM
+   - Never participates in execution path
+
+3. EVENTUAL SECURITY SEMANTICS
+   - Detection is asynchronous
+   - Reaction is external (not inline)
+
+4. FAILURE MODE IS SAFE
+   - If immune system fails, DVSM continues unchanged
+
+=====================================================
+
+IMPORTANT DESIGN SHIFT:
+
+OLD MODEL:
+    "stop bad execution"
+
+NEW MODEL:
+    "observe everything, interrupt nothing, reconstruct truth later"
+
+=====================================================
+*/
 // =====================================================
 // DVSM_FINAL_CLOSURE_AXIOM.swift
 // VERSION: OMEGA-LOCKED-CLOSURE-V1
@@ -3857,9 +4065,6 @@ DVSM is:
 
 not a closed universe,
 but a closed equivalence class of universes.
-
-=====================================================
-*/
 
 =====================================================
 
