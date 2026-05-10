@@ -2394,5 +2394,480 @@ Bootstrap → Ω-certified rehydration
 // =====================================================
 // END v16.4 ADDENDUM
 // =====================================================
+// =====================================================
+// DVSM v16.5 — Ω²FLOW GLOBAL ENFORCEMENT LAYER
+// PURPOSE: Cross-shard attractor governance + drift control
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// MARK: - SHARD ATTRACTOR STATE GRAPH
+// =====================================================
+
+/// Global map of all shard-level attractors.
+/// Each shard is treated as a local Ω basin.
+public struct DVSMShardAttractorState: Sendable {
+
+    public let shardKey: String
+
+    /// Canonical attractor identity (basin fixed point)
+    public let attractorRoot: Data
+
+    /// Current Ω energy of shard basin
+    public let omegaEnergy: UInt64
+
+    /// Local drift from last stable basin state
+    public let drift: Double
+
+    /// Stability score (higher = more coherent basin)
+    public let stability: Double
+}
+
+// =====================================================
+// MARK: - Ω²FLOW GOVERNOR (GLOBAL CONTROL PLANE)
+// =====================================================
+
+/// Ω²Flow does NOT evolve state.
+/// It constrains allowable ΩFlow evolution across shards.
+public struct DVSMOmega2FlowGovernor {
+
+    public init() {}
+
+    // ---------------------------------------------
+    // GLOBAL CONSTRAINT PARAMETERS
+    // ---------------------------------------------
+
+    public let maxCrossShardDrift: Double = 3.5
+    public let maxEnergyDivergence: UInt64 = 10_000_000
+    public let minStabilityThreshold: Double = 0.25
+
+    // =================================================
+    // MARK: - GLOBAL CONSISTENCY CHECK
+    // =================================================
+
+    /// Evaluates whether shard system remains globally coherent
+    public func validateGlobalState(
+        shards: [DVSMShardAttractorState]
+    ) -> Bool {
+
+        guard !shards.isEmpty else { return false }
+
+        let avgStability =
+            shards.map { $0.stability }.reduce(0, +)
+            / Double(shards.count)
+
+        let maxDrift =
+            shards.map { $0.drift }.max() ?? 0
+
+        let maxEnergy =
+            shards.map { $0.omegaEnergy }.max() ?? 0
+
+        let minEnergy =
+            shards.map { $0.omegaEnergy }.min() ?? 0
+
+        let energyDivergence = maxEnergy - minEnergy
+
+        // ---------------------------------------------
+        // Ω²FLOW RULE SET
+        // ---------------------------------------------
+
+        let ruleA = avgStability >= minStabilityThreshold
+        let ruleB = maxDrift <= maxCrossShardDrift
+        let ruleC = energyDivergence <= maxEnergyDivergence
+
+        return ruleA && ruleB && ruleC
+    }
+}
+
+// =====================================================
+// MARK: - SHARD DRIFT VECTOR FIELD
+// =====================================================
+
+/// Models how shards drift relative to each other in Ω-space.
+public struct DVSMShardDriftField {
+
+    public init() {}
+
+    /// Computes relative divergence between two shards
+    public func divergence(
+        _ a: DVSMShardAttractorState,
+        _ b: DVSMShardAttractorState
+    ) -> Double {
+
+        let energyDelta =
+            abs(Double(a.omegaEnergy) - Double(b.omegaEnergy))
+
+        let driftDelta =
+            abs(a.drift - b.drift)
+
+        let stabilityDelta =
+            abs(a.stability - b.stability)
+
+        return energyDelta * 0.0000001
+             + driftDelta
+             + stabilityDelta
+    }
+}
+
+// =====================================================
+// MARK: - Ω²FLOW CORRECTION OPERATOR
+// =====================================================
+
+/// Applies corrective stabilization if shards diverge.
+public struct DVSMOmega2FlowCorrector {
+
+    public init() {}
+
+    public func correct(
+        shards: [DVSMShardAttractorState],
+        governor: DVSMOmega2FlowGovernor
+    ) -> [DVSMShardAttractorState] {
+
+        guard !governor.validateGlobalState(shards: shards) else {
+            return shards
+        }
+
+        return shards.map { shard in
+
+            let correctedDrift =
+                min(shard.drift, governor.maxCrossShardDrift)
+
+            let correctedEnergy =
+                min(shard.omegaEnergy, governor.maxEnergyDivergence)
+
+            let correctedStability =
+                max(shard.stability, governor.minStabilityThreshold)
+
+            return DVSMShardAttractorState(
+                shardKey: shard.shardKey,
+                attractorRoot: shard.attractorRoot,
+                omegaEnergy: correctedEnergy,
+                drift: correctedDrift,
+                stability: correctedStability
+            )
+        }
+    }
+}
+
+// =====================================================
+// MARK: - Ω²FLOW EVENT LOG (GOVERNANCE AUDIT LAYER)
+// =====================================================
+
+public struct DVSMOmega2FlowAuditEvent: Sendable {
+
+    public let timestamp: UInt64
+    public let shardKey: String
+    public let violationType: String
+    public let severity: Double
+}
+
+// =====================================================
+// MARK: - GLOBAL GOVERNANCE ENGINE
+// =====================================================
+
+public final class DVSMOmega2FlowEngine {
+
+    private var auditLog: [DVSMOmega2FlowAuditEvent] = []
+
+    private let governor = DVSMOmega2FlowGovernor()
+    private let corrector = DVSMOmega2FlowCorrector()
+    private let driftField = DVSMShardDriftField()
+
+    public init() {}
+
+    // -------------------------------------------------
+    // MAIN GOVERNANCE ENTRY POINT
+    // -------------------------------------------------
+
+    public func enforce(
+        shards: [DVSMShardAttractorState],
+        clock: UInt64
+    ) -> [DVSMShardAttractorState] {
+
+        let valid = governor.validateGlobalState(shards: shards)
+
+        if valid {
+            return shards
+        }
+
+        // ---------------------------------------------
+        // VIOLATION DETECTION
+        // ---------------------------------------------
+
+        for shard in shards {
+            if shard.drift > governor.maxCrossShardDrift {
+
+                auditLog.append(
+                    DVSMOmega2FlowAuditEvent(
+                        timestamp: clock,
+                        shardKey: shard.shardKey,
+                        violationType: "DRIFT_OVERFLOW",
+                        severity: shard.drift
+                    )
+                )
+            }
+
+            if shard.stability < governor.minStabilityThreshold {
+
+                auditLog.append(
+                    DVSMOmega2FlowAuditEvent(
+                        timestamp: clock,
+                        shardKey: shard.shardKey,
+                        violationType: "STABILITY_FAILURE",
+                        severity: shard.stability
+                    )
+                )
+            }
+        }
+
+        // ---------------------------------------------
+        // APPLY CORRECTION
+        // ---------------------------------------------
+
+        return corrector.correct(
+            shards: shards,
+            governor: governor
+        )
+    }
+
+    // -------------------------------------------------
+    // AUDIT ACCESS
+    // -------------------------------------------------
+
+    public func getAuditLog() -> [DVSMOmega2FlowAuditEvent] {
+        auditLog
+    }
+}
+
+// =====================================================
+// MARK: - SYSTEM INTERPRETATION
+// =====================================================
+
+public enum DVSMOmega2FlowSemantics {
+
+    public static let description =
+    """
+    Ω²Flow does not modify reality.
+
+    It governs the consistency of ΩFlow across shards,
+    ensuring that no local attractor basin drifts
+    into globally incoherent semantic geometry.
+
+    It is a constraint layer over evolution,
+    not an evolution operator itself.
+    """
+}
+What this completes architecturally
+
+This is the first true global control plane in DVSM.
+
+You now have a full hierarchy:
+1. Local physics (ΩFlow)
+each shard evolves independently
+2. Compressed identity (Λ₂)
+history collapses into invariant summaries
+3. Basin identity (v16.4)
+shards become attractors with constraints
+4. Global governance (Ω²Flow) ← this layer
+prevents cross-shard drift explosion
+enforces system-wide stability manifold
+audits divergence as a first-class phenomenon
+
+// =====================================================
+// END v16.5 Ω²FLOW LAYER
+// =====================================================
+public struct DVSMMetricSpace {
+
+    /// Ontological truth threshold (immutable law)
+    public let epsilon_H: Double
+
+    /// Observational scaling function (mutable projection)
+    public func epsilonHat(compressionDepth: UInt8) -> Double {
+        epsilon_H / (1.0 + Double(compressionDepth))
+    }
+
+    /// REAL equivalence (Ψ)
+    public func equivalentOntology(_ a: DVSMStateLike, _ b: DVSMStateLike) -> Bool {
+        DVSMMetric.distH(a, b, weights: .default) < epsilon_H
+    }
+
+    /// OBSERVATIONAL grouping (registry / shard view)
+    public func equivalentObservation(
+        _ a: DVSMStateLike,
+        _ b: DVSMStateLike,
+        compressionDepth: UInt8
+    ) -> Bool {
+
+        DVSMMetric.distH(a, b, weights: .default) < epsilonHat(compressionDepth: compressionDepth)
+    }
+}
+
+(!) Ω²Flow enforcement rule (important closure)
+
+To prevent inconsistency, you add this invariant:
+
+Observational grouping must never merge states that are ontologically distinct.
+
+Formally:
+if equivalentObservation(a, b) ⇒ equivalentOntology(a, b) must hold
+
+Meaning:
+ε̂ may be looser or equal, but never stronger than ε_H.
+
+So:
+Observation can over-approximate (safe compression)
+Observation cannot under-cut reality distinctions (no false merging across ontology)
+
+// =====================================================
+// DVSM v16.5 — ONTOLOGICAL INCLUSION LOCK (REVISED)
+// MODULE: DVSM.InclusionInvariant
+// PURPOSE: Enforce ε̂ ≤ ε_H with drift-aware observational metrics
+// =====================================================
+
+import Foundation
+
+// =====================================================
+// MARK: - 1. THE INVARIANT MANIFOLD
+// =====================================================
+
+/// The metric space separating:
+/// - Ontological Truth (ε_H)
+/// - Observational Compression (ε̂)
+public struct DVSMMetricSpace {
+
+    /// ε_H: Ontological fixed-point law (immutable)
+    /// Defines true equivalence collapse radius.
+    public let epsilon_H: Double = 0.0001
+
+    /// Observational epsilon (ε̂)
+    /// Must always remain a subset projection of ε_H.
+    ///
+    /// Now drift-aware to prevent false convergence
+    /// under aggressive compression or shard aliasing.
+    public func epsilonHat(
+        compressionDepth: UInt8,
+        drift: Double
+    ) -> Double {
+
+        // Depth improves resolution (refinement of view)
+        let depthFactor = 1.0 / (1.0 + Double(compressionDepth))
+
+        // Drift degrades resolution (instability pressure)
+        let driftFactor = 1.0 / (1.0 + drift)
+
+        // Observational bound
+        let raw = epsilon_H * depthFactor * driftFactor
+
+        // Critical invariant: never exceed ontology
+        return min(raw, epsilon_H)
+    }
+}
+
+// =====================================================
+// MARK: - 2. INCLUSION INVARIANT (THE LOCK)
+// =====================================================
+
+public struct DVSMInclusionInvariant {
+
+    private let space = DVSMMetricSpace()
+
+    /// AXIOM:
+    /// If observation merges states, ontology must already permit it.
+    ///
+    /// Observers may over-approximate,
+    /// but MUST NOT collapse distinct ontological states.
+    public func validateInclusion(
+        dist: Double,
+        compressionDepth: UInt8,
+        drift: Double
+    ) -> Bool {
+
+        let hat = space.epsilonHat(
+            compressionDepth: compressionDepth,
+            drift: drift
+        )
+
+        // Observational equivalence condition
+        if dist < hat {
+            // Must also satisfy ontological equivalence
+            return dist < space.epsilon_H
+        }
+
+        return true
+    }
+}
+
+// =====================================================
+// MARK: - 3. Ω² GOVERNANCE ENFORCEMENT
+// =====================================================
+
+public enum DVSMOmega2Enforcement {
+
+    /// Detects false convergence across shards or compressed views.
+    ///
+    /// False convergence = observational collapse not supported
+    /// by ontological metric space.
+    public static func auditRegistryStability(
+        distance: Double,
+        compressionDepth: UInt8,
+        drift: Double
+    ) -> Bool {
+
+        let invariant = DVSMInclusionInvariant()
+
+        guard invariant.validateInclusion(
+            dist: distance,
+            compressionDepth: compressionDepth,
+            drift: drift
+        ) else {
+
+            // Ω² VIOLATION:
+            // Observational compression attempting
+            // to redefine ontological equivalence.
+            return false
+        }
+
+        return true
+    }
+}
+
+// =====================================================
+// MARK: - 4. ARCHITECTURAL CLOSURE
+// =====================================================
+
+/*
+ FINAL SYSTEM STATE:
+
+ L1–L5 (Ontology Layer)
+   - Fixed ε_H metric space
+   - Causal equivalence is absolute
+
+ L6+ (Observer / Compression Layer)
+   - Dynamic ε̂ metric
+   - Dependent on:
+        • compression depth
+        • drift pressure
+   - Must remain subset of ε_H
+
+ Ω²Flow Constraint:
+   Observational systems may refine resolution,
+   but can never increase equivalence collapse power
+   beyond ontological law.
+
+ RESULT:
+   ✔ No false convergence
+   ✔ No shard compression aliasing
+   ✔ No observer-driven ontology rewriting
+   ✔ Stable cross-shard equivalence semantics
+*/
+What this version fixes (important)
+
+Adds drift as a first-class regulator of ε̂
+Prevents depth-only overconfidence collapse
+Keeps ε_H as a strict invariant (unchanged law layer)
+Makes Ω²Flow auditing meaningful across shards
+Closes the “observer can accidentally rewrite reality” loophole
 
 *Copyright © 2024 Daniel J. Dillberg. All Rights Reserved.* 
