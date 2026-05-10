@@ -2,11 +2,17 @@
 // AMP — INVARIANT HORIZON FINAL CLOSED SPECIFICATION
 // Version: Ghost-Reconciled Manifold Closure
 // =====================================================
-// Purpose:
-//  - Eliminate orphan tiles via quotient-space completion
-//  - Remove velocity-as-authority (prevent Class IV exploits)
-//  - Replace global sync with causal monotonic ordering
-//  - Preserve deterministic Aztec Mesh tiling semantics
+//  - Guarantee quotient-complete lattice closure through irreversible VOID projection
+//  - Enforce kinetic gating as entropy admission only (non-authoritative velocity semantics)
+//  - Eliminate adversarial basin steering via monotone state-transition constraints
+//  - Replace wall-clock coordination with causal-depth partial ordering
+//  - Preserve deterministic Aztec parity, domino-cover consistency, and fixed-point convergence
+//  - Prevent orphan-half-domino emergence through local topological absorption rules
+//  - Maintain replay-invariant execution semantics across heterogeneous runtimes
+//  - Constrain all adaptive parameter evolution under monotone governance morphisms
+//  - Ensure frozen-state irreversibility under Arctic-boundary saturation dynamics
+//  - Collapse invalid or non-representable configurations into canonical VOID equivalence classes
+//  - Introduce adaptive constraint layer (ACGK) enabling monotone parameter morphisms while preserving all lattice invariants
 // =====================================================
 // ================================================================
 // DVSM-AMP — EXECUTION SEMANTICS FINALIZER
