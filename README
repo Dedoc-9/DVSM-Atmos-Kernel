@@ -851,5 +851,367 @@ import Foundation
 //      "what single causal reality must occur given the rules"
 //
 // =====================================================
+// dvsm-dist-h/src/lib.rs
+
+pub mod state;
+pub mod metric;
+pub mod axioms;
+
+/// The core Result of a DVSM metric evaluation.
+pub type MetricResult = f64;
+
+/// Threshold for epsilon-reachability (ε_H).
+pub const EPSILON_H: MetricResult = 0.00001; 
+
+/// The Primary Trait for History-Sealed States.
+pub trait SealedState {
+    fn hash_divergence(&self, other: &Self) -> MetricResult;
+    fn causal_divergence(&self, other: &Self) -> MetricResult;
+    fn entropy_divergence(&self, other: &Self) -> MetricResult;
+    
+    /// The Composite Metric (dist_H)
+    /// dist_H = α·d_hash + β·d_causal + γ·d_entropy
+    fn dist_h(&self, other: &Self, weights: (f64, f64, f64)) -> MetricResult {
+        let (alpha, beta, gamma) = weights;
+        alpha * self.hash_divergence(other) +
+        beta * self.causal_divergence(other) +
+        gamma * self.entropy_divergence(other)
+    }
+}
+LAYER 1.5 — CANONICAL STATE EMBEDDING (HISTORY SEALED PRIMITIVE)
+Rust addition: state.rs (next required artifact)
+
+// dvsm-dist-h/src/state.rs
+
+use sha2::{Sha256, Digest};
+
+/// Canonical DVSM state representation
+/// NOT a snapshot — a history-sealed causal fingerprint.
+pub trait DVSMState {
+    /// Cryptographic identity of this state node
+    fn state_hash(&self) -> [u8; 32];
+
+    /// Structural causal footprint (not time-based)
+    fn causal_fingerprint(&self) -> [u8; 32];
+
+    /// Entropic encoding of internal variability
+    fn entropy_signature(&self) -> f64;
+
+    /// Canonical embedding into metric space
+    fn embed(&self) -> StateEmbedding {
+        StateEmbedding {
+            h: self.state_hash(),
+            c: self.causal_fingerprint(),
+            e: self.entropy_signature(),
+        }
+    }
+}
+
+/// Minimal invariant representation used by dist_H
+#[derive(Clone, Copy, Debug)]
+pub struct StateEmbedding {
+    pub h: [u8; 32],
+    pub c: [u8; 32],
+    pub e: f64,
+}
+NEXT REQUIRED FILE: metric.rs (upgraded meaning)
+Now dist_H becomes properly grounded:
+
+pub fn dist_h(
+    a: &StateEmbedding,
+    b: &StateEmbedding,
+    weights: (f64, f64, f64),
+) -> f64 {
+    let (alpha, beta, gamma) = weights;
+
+    alpha * hash_distance(a.h, b.h)
+    + beta * causal_distance(a.c, b.c)
+    + gamma * entropy_distance(a.e, b.e)
+}
+dist_H → metric structure
+Ψ → connected components
+ΩFlow → gradient flow over induced quotient manifold
+
+Phase 1: dvsm-dist-h/src/causal.rsWe 
+Introduce a Canonical Trace Normalization layer. 
+Before dist_h is calculated, the execution trace 
+is reduced to its Transitive Reduction 
+(the "Skeleton" of the causality)
+
+// dvsm-dist-h/src/causal.rs
+
+pub struct CausalGraph {
+    /// Admissibility edges: (u, v) means u MUST precede v
+    pub dependencies: Vec<(u32, u32)>,
+    pub signature: [u8; 32],
+}
+
+impl CausalGraph {
+    /// Reduces the graph to its minimal invariant form
+    fn normalize(&self) -> NormalizedCausalFingerprint {
+        // 1. Sort independent event clusters
+        // 2. Apply transitive reduction (remove redundant edges)
+        // 3. Hash the resulting canonical structure
+        todo!("Implement Transitive Reduction + Lexicographical Sort")
+    }
+}
+Strengthened Assumption:
+All causal structure is representable as a finite DAG with deterministic transitive reduction.
+
+// =====================================================
+// DVSM-DIST-H — CAUSAL CORE MODULE
+// PURPOSE: Canonical causal equivalence + normalization
+// =====================================================
+
+use std::collections::{HashMap, HashSet};
+
+/// =====================================================
+/// 1. EVENT SPACE
+/// =====================================================
+
+/// A single atomic execution event in a trace.
+///
+/// NOTE:
+/// This is NOT ordered by time.
+/// Ordering emerges from causal constraints only.
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub struct Event {
+    pub id: u64,
+
+    /// Logical payload (abstract, deterministic)
+    pub payload_hash: [u8; 32],
+
+    /// Optional semantic tag for debugging / observability
+    pub tag: Option<u32>,
+}
+
+/// A raw execution trace (unordered input space)
+pub type EventTrace = Vec<Event>;
+
+/// =====================================================
+/// 2. CAUSAL STRUCTURE (PARTIAL ORDER MODEL)
+/// =====================================================
+
+/// Directed edge: `a -> b` means a MUST precede b
+pub type CausalEdge = (u64, u64);
+
+#[derive(Clone, Debug)]
+pub struct CausalGraph {
+    pub events: HashMap<u64, Event>,
+    pub edges: Vec<CausalEdge>,
+}
+
+/// Concurrency equivalence:
+/// two events are concurrent if neither precedes the other.
+pub fn are_concurrent(graph: &CausalGraph, a: u64, b: u64) -> bool {
+    let mut forward = false;
+    let mut backward = false;
+
+    for (u, v) in &graph.edges {
+        if *u == a && *v == b {
+            forward = true;
+        }
+        if *u == b && *v == a {
+            backward = true;
+        }
+    }
+
+    !(forward || backward)
+}
+
+/// Builds adjacency map for reachability checks
+fn build_adj(edges: &[CausalEdge]) -> HashMap<u64, Vec<u64>> {
+    let mut adj: HashMap<u64, Vec<u64>> = HashMap::new();
+
+    for (u, v) in edges {
+        adj.entry(*u).or_default().push(*v);
+    }
+
+    adj
+}
+
+/// Reachability check (used for partial order closure)
+fn reachable(
+    adj: &HashMap<u64, Vec<u64>>,
+    start: u64,
+    target: u64,
+    visited: &mut HashSet<u64>,
+) -> bool {
+    if start == target {
+        return true;
+    }
+
+    if !visited.insert(start) {
+        return false;
+    }
+
+    if let Some(neighbors) = adj.get(&start) {
+        for n in neighbors {
+            if reachable(adj, *n, target, visited) {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+/// =====================================================
+/// 3. CANONICAL PARTIAL-ORDER PROJECTION
+/// =====================================================
+
+#[derive(Clone, Debug)]
+pub struct NormalizedCausalFingerprint {
+    /// Canonical ordering of equivalence classes
+    pub layers: Vec<Vec<u64>>,
+
+    /// Structural hash of the partial order
+    pub signature: [u8; 32],
+}
+
+impl CausalGraph {
+    /// -------------------------------------------------
+    /// STEP 1: CONCURRENCY PARTITIONING
+    /// -------------------------------------------------
+    fn concurrency_classes(&self) -> Vec<HashSet<u64>> {
+        let mut classes: Vec<HashSet<u64>> = Vec::new();
+        let mut assigned: HashSet<u64> = HashSet::new();
+
+        for a in self.events.keys() {
+            if assigned.contains(a) {
+                continue;
+            }
+
+            let mut class = HashSet::new();
+            class.insert(*a);
+
+            for b in self.events.keys() {
+                if a != b && are_concurrent(self, *a, *b) {
+                    class.insert(*b);
+                }
+            }
+
+            for e in &class {
+                assigned.insert(*e);
+            }
+
+            classes.push(class);
+        }
+
+        classes
+    }
+
+    /// -------------------------------------------------
+    /// STEP 2: TOPOLOGICAL LAYERING (CAUSAL STRATIFICATION)
+    /// -------------------------------------------------
+    fn build_layers(&self) -> Vec<Vec<u64>> {
+        let adj = build_adj(&self.edges);
+        let mut indegree: HashMap<u64, usize> = HashMap::new();
+
+        for (u, v) in &self.edges {
+            *indegree.entry(*v).or_default() += 1;
+            indegree.entry(*u).or_default();
+        }
+
+        let mut layer: Vec<u64> = indegree
+            .iter()
+            .filter(|(_, deg)| **deg == 0)
+            .map(|(k, _)| *k)
+            .collect();
+
+        let mut visited: HashSet<u64> = HashSet::new();
+        let mut result: Vec<Vec<u64>> = Vec::new();
+
+        while !layer.is_empty() {
+            let current = layer.clone();
+            result.push(current.clone());
+
+            let mut next_layer = Vec::new();
+
+            for node in current {
+                visited.insert(node);
+
+                if let Some(children) = adj.get(&node) {
+                    for c in children {
+                        if !visited.contains(c) {
+                            next_layer.push(*c);
+                        }
+                    }
+                }
+            }
+
+            layer = next_layer;
+        }
+
+        result
+    }
+
+    /// -------------------------------------------------
+    /// STEP 3: NORMALIZATION PIPELINE
+    /// -------------------------------------------------
+    pub fn normalize(&self) -> NormalizedCausalFingerprint {
+        let layers = self.build_layers();
+
+        // Canonical ordering: stable sort per layer
+        let mut canonical_layers = layers
+            .into_iter()
+            .map(|mut layer| {
+                layer.sort_unstable();
+                layer
+            })
+            .collect::<Vec<_>>();
+
+        canonical_layers.sort_by(|a, b| a.len().cmp(&b.len()));
+
+        let signature = self.hash_layers(&canonical_layers);
+
+        NormalizedCausalFingerprint {
+            layers: canonical_layers,
+            signature,
+        }
+    }
+
+    /// -------------------------------------------------
+    /// STEP 4: STRUCTURAL HASHING
+    /// -------------------------------------------------
+    fn hash_layers(&self, layers: &Vec<Vec<u64>>) -> [u8; 32] {
+        use sha2::{Digest, Sha256};
+
+        let mut hasher = Sha256::new();
+
+        for layer in layers {
+            for id in layer {
+                hasher.update(id.to_le_bytes());
+            }
+            hasher.update(b"|");
+        }
+
+        let result = hasher.finalize();
+        let mut out = [0u8; 32];
+        out.copy_from_slice(&result);
+        out
+    }
+}
+
+/// =====================================================
+/// 4. DERIVED CLOSURE PROPERTY (CONCEPTUAL)
+/// =====================================================
+
+/// NOTE (IMPORTANT):
+/// This is NOT equality of traces.
+/// This is equivalence of causal structure.
+pub fn causal_equivalence(a: &CausalGraph, b: &CausalGraph) -> bool {
+    a.normalize().signature == b.normalize().signature
+}
+This file is no longer “support code.”
+
+It is the causal quotient operator:
+
+raw execution trace
+→ partial order reduction
+→ concurrency equivalence classes
+→ canonical layering
+→ structural hash
+
 *Copyright © 2024 Daniel J. Dillberg. All Rights Reserved.*  
 *Recursive Identifier: [DVSM-SIGNAL-v21-B]*
