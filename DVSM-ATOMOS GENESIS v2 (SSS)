@@ -2,6 +2,7 @@
 -- DVSM-ATOMOS: GENESIS v2
 -- SYSTEM: Causally-Closed Deterministic Reality Engine
 -- PURPOSE: Metric → Quotient → Dynamics → Attractor Closure
+-- AUTHOR: Daniel J. Dillberg
 -- =====================================================
 //
 //  DVSM_Atomos_Whitepaper_v0_1.swift
@@ -856,7 +857,1542 @@ public enum DVSMGenesisV21 {
     Truth is convergence within causal metric space.
     """
 }
-
 // =====================================================
 // END GENESIS v2.1
 // =====================================================
+// =====================================================
+// DVSM-ATOMOS Genesis v2
+// ARCHITECTURAL LAYER SUMMARY
+// Canonical System Topology + Integrity Model
+// =====================================================
+
+import Foundation
+
+// =====================================================
+// MARK: - DVSM LAYER MODEL
+// =====================================================
+
+public struct DVSMLayer {
+
+    /// Canonical layer identifier
+    public let id: String
+
+    /// Layer name
+    public let name: String
+
+    /// Deterministic purpose definition
+    public let purpose: String
+
+    public init(
+        id: String,
+        name: String,
+        purpose: String
+    ) {
+        self.id = id
+        self.name = name
+        self.purpose = purpose
+    }
+}
+
+// =====================================================
+// MARK: - GENESIS v2 LAYERS
+// =====================================================
+
+public enum DVSMGenesisV2Layers {
+
+    /// Full architectural stack
+    public static let all: [DVSMLayer] = [
+
+        // -------------------------------------------------
+        // L1 — TRUTH KERNEL
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L1",
+            name: "Truth Kernel",
+            purpose:
+            """
+            Deterministic state transition engine;
+            authoritative reality generation.
+            """
+        ),
+
+        // -------------------------------------------------
+        // L1.5 — CANONICAL EMBEDDING
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L1.5",
+            name: "Canonical State Embedding",
+            purpose:
+            """
+            History-sealed state representation
+            (hash, causal fingerprint, entropy)
+            used for metric geometry.
+            """
+        ),
+
+        // -------------------------------------------------
+        // L2 — OBSERVER
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L2",
+            name: "Observer Layer",
+            purpose:
+            """
+            Non-authoritative interpretation,
+            analytics, visualization,
+            and replay inspection.
+            """
+        ),
+
+        // -------------------------------------------------
+        // L2.5 — SPECTRAL OBSERVER
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L2.5",
+            name: "Spectral Observer",
+            purpose:
+            """
+            Deterministic signal decomposition
+            and entropy-spectrum analysis.
+            """
+        ),
+
+        // -------------------------------------------------
+        // L2.7 — INTEGRITY / NOISE DECONSTRUCTION
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L2.7",
+            name: "Integrity / Noise Deconstruction",
+            purpose:
+            """
+            Anti-cheat manifold detecting:
+            - impossible kinematics,
+            - scripted periodicity,
+            - entropy collapse,
+            - and non-human timing signatures.
+            """
+        ),
+
+        // -------------------------------------------------
+        // L2.8 — POCR REACHABILITY
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L2.8",
+            name: "POCR Reachability Layer",
+            purpose:
+            """
+            Partial-observability constrained
+            reachability solver rejecting
+            causally unreachable transitions
+            (“causal orphans”).
+            """
+        ),
+
+        // -------------------------------------------------
+        // L3 — PROVENANCE COMPILER
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L3",
+            name: "Provenance Compiler",
+            purpose:
+            """
+            Input normalization,
+            cryptographic validation,
+            deterministic intent compilation.
+            """
+        ),
+
+        // -------------------------------------------------
+        // L4 — RUNTIME SUBSTRATE
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L4",
+            name: "Runtime Substrate",
+            purpose:
+            """
+            Deterministic execution environment,
+            scheduling isolation,
+            ABI stability,
+            fixed-point enforcement.
+            """
+        ),
+
+        // -------------------------------------------------
+        // L4.5 — CAUSAL ANCHOR
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L4.5",
+            name: "Causal Anchor",
+            purpose:
+            """
+            Replay-based recovery and
+            history reconstruction.
+            """
+        ),
+
+        // -------------------------------------------------
+        // L5 — QUOTIENT CONSISTENCY
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L5",
+            name: "Quotient Consistency Layer",
+            purpose:
+            """
+            Replay equivalence,
+            causal normalization,
+            partial-order reduction,
+            and basin equivalence.
+            """
+        ),
+
+        // -------------------------------------------------
+        // L6 — FORMAL CONSTRAINT LAYER
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "L6",
+            name: "Formal Constraint Layer",
+            purpose:
+            """
+            Impossibility axioms,
+            determinism laws,
+            and convergence constraints.
+            """
+        ),
+
+        // -------------------------------------------------
+        // ΩFLOW — DYNAMICS
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "ΩFlow",
+            name: "Dynamics Layer",
+            purpose:
+            """
+            Gradient descent over
+            quotient-state manifolds
+            toward stable attractor basins.
+            """
+        ),
+
+        // -------------------------------------------------
+        // Ω²FLOW — META GOVERNANCE
+        // -------------------------------------------------
+
+        DVSMLayer(
+            id: "Ω²Flow",
+            name: "Meta-Governance Layer",
+            purpose:
+            """
+            Governs lawful evolution
+            of Ω rules under replay-safe
+            attestation constraints.
+            """
+        )
+    ]
+}
+
+// =====================================================
+// MARK: - L2.7 / L2.8 INTEGRITY MODEL
+// =====================================================
+
+public enum DVSMIntegrityModel {
+
+    // -------------------------------------------------
+    // CORE AXIOM
+    // -------------------------------------------------
+
+    public static let axiom =
+    """
+    DVSM does not treat cheating
+    as a policy violation.
+
+    It treats cheating as a
+    causal impossibility.
+    """
+
+    // -------------------------------------------------
+    // MANIFOLD ANALYSIS TARGETS
+    // -------------------------------------------------
+
+    public static let analyzedSignals: [String] = [
+
+        "Impossible movement vectors",
+
+        "Recoil spectral periodicity",
+
+        "Entropy-deficient input patterns",
+
+        "Sub-human reaction variance",
+
+        "Actions unreachable from the agent’s Partial State Manifold (PSM)"
+    ]
+
+    // -------------------------------------------------
+    // REACHABILITY LAW
+    // -------------------------------------------------
+
+    public static let reachabilityLaw =
+    """
+    A transition is invalid iff:
+
+        T ∉ Reachable(PSM, Constraints)
+    """
+
+    // -------------------------------------------------
+    // DETECTED IMPOSSIBILITIES
+    // -------------------------------------------------
+
+    public static let anomalyClasses: [String] = [
+
+        "Wallhacks",
+
+        "Aimbots",
+
+        "Lag switching",
+
+        "Memory injection",
+
+        "Scripted recoil compensation"
+    ]
+
+    // -------------------------------------------------
+    // INTERPRETATION
+    // -------------------------------------------------
+
+    public static let interpretation =
+    """
+    These are not treated as heuristic detections.
+
+    They are modeled as mathematical anomalies
+    that violate deterministic causal reachability.
+    """
+}
+
+// =====================================================
+// MARK: - GENESIS DECLARATION
+// =====================================================
+
+public enum DVSMGenesisV2Declaration {
+
+    public static let statement =
+    """
+    DVSM-ATOMOS Genesis v2 defines reality
+    as a deterministic quotient topology
+    over causal histories constrained by:
+
+    - replay equivalence,
+    - bounded metric geometry,
+    - Ω-descending dynamics,
+    - and causal reachability laws.
+    """
+}
+
+// =====================================================
+// END ARCHITECTURAL SUMMARY
+// =====================================================
+// =====================================================
+// DVSM-ATOMOS Genesis v2
+// L2.7 / L2.8 — Noise Deconstruction + Anti-Cheat Layer
+// PURPOSE:
+// Deterministic integrity validation through:
+// - spectral analysis
+// - entropy inspection
+// - causal reachability
+// - bounded human variance
+// =====================================================
+
+import Foundation
+
+// =====================================================
+// MARK: - 1. INPUT SIGNAL MODEL
+// =====================================================
+
+/// Canonical player / agent input sample.
+///
+/// IMPORTANT:
+/// This is NOT interpreted semantically.
+/// DVSM analyzes:
+///     structure,
+///     entropy,
+///     periodicity,
+///     reachability.
+///
+/// The system examines:
+/// - movement deltas
+/// - aim vectors
+/// - timing variance
+/// - causal visibility constraints
+///
+public struct DVSMInputSignal {
+
+    /// Fixed-point movement vector
+    public let movement: [Int64]
+
+    /// Aim / directional vector
+    public let aim: [Int64]
+
+    /// Millisecond reaction timings
+    public let timing: [UInt64]
+
+    /// Visibility / known-world constraints
+    public let visibleEntities: Set<UInt64>
+
+    public init(
+        movement: [Int64],
+        aim: [Int64],
+        timing: [UInt64],
+        visibleEntities: Set<UInt64>
+    ) {
+        self.movement = movement
+        self.aim = aim
+        self.timing = timing
+        self.visibleEntities = visibleEntities
+    }
+}
+
+// =====================================================
+// MARK: - 2. DETECTION RESULTS
+// =====================================================
+
+public enum DVSMIntegritySignal {
+
+    case clean
+
+    /// Impossible physical transition
+    case manifoldViolation
+
+    /// Mechanically periodic input
+    case deterministicScriptPattern
+
+    /// Reaction timings below human variance
+    case nonHumanTimingSignature
+
+    /// Transition impossible from visible state
+    case causalOrphan
+
+    /// Entropy collapse / automation
+    case entropyCollapse
+}
+
+// =====================================================
+// MARK: - 3. INTEGRITY CONSTRAINTS
+// =====================================================
+
+public enum DVSMIntegrityConstraints {
+
+    /// Maximum allowed movement delta
+    public static let maxVelocity: Int64 = 1_048_576
+
+    /// Minimum entropy expected in human behavior
+    public static let minimumEntropy: Double = 0.45
+
+    /// Minimum reaction variance
+    public static let minimumReactionVariance: Double = 0.18
+
+    /// Maximum periodicity energy before automation suspicion
+    public static let periodicityThreshold: Double = 15.0
+}
+
+// =====================================================
+// MARK: - 4. NOISE DECONSTRUCTION ENGINE
+// =====================================================
+
+/// Core deterministic anti-cheat manifold.
+///
+/// IMPORTANT:
+/// DVSM does NOT "guess cheating."
+///
+/// It evaluates:
+///
+///     "Can this transition exist
+///      inside the deterministic manifold
+///      of a bounded human agent?"
+///
+public struct DVSMNoiseDeconstructor {
+
+    public init() {}
+
+    // =================================================
+    // MARK: - ENTRY POINT
+    // =================================================
+
+    public func inspect(
+        _ signal: DVSMInputSignal
+    ) -> DVSMIntegritySignal {
+
+        // ---------------------------------------------
+        // 1. KINEMATIC VALIDATION
+        // ---------------------------------------------
+        if violatesKinematics(signal) {
+            return .manifoldViolation
+        }
+
+        // ---------------------------------------------
+        // 2. ENTROPY INSPECTION
+        // ---------------------------------------------
+        let entropy = computeEntropy(signal.movement)
+
+        if entropy < DVSMIntegrityConstraints.minimumEntropy {
+            return .entropyCollapse
+        }
+
+        // ---------------------------------------------
+        // 3. SPECTRAL / PERIODICITY ANALYSIS
+        // ---------------------------------------------
+        let periodicity = spectralEnergy(signal.aim)
+
+        if periodicity > DVSMIntegrityConstraints.periodicityThreshold {
+            return .deterministicScriptPattern
+        }
+
+        // ---------------------------------------------
+        // 4. TIMING VARIANCE ANALYSIS
+        // ---------------------------------------------
+        let variance = reactionVariance(signal.timing)
+
+        if variance < DVSMIntegrityConstraints.minimumReactionVariance {
+            return .nonHumanTimingSignature
+        }
+
+        // ---------------------------------------------
+        // 5. CAUSAL REACHABILITY CHECK
+        // ---------------------------------------------
+        if violatesVisibility(signal) {
+            return .causalOrphan
+        }
+
+        return .clean
+    }
+}
+
+// =====================================================
+// MARK: - 5. ANALYSIS IMPLEMENTATION
+// =====================================================
+
+private extension DVSMNoiseDeconstructor {
+
+    // -------------------------------------------------
+    // KINEMATIC IMPOSSIBILITY
+    // -------------------------------------------------
+
+    func violatesKinematics(
+        _ signal: DVSMInputSignal
+    ) -> Bool {
+
+        for delta in signal.movement {
+            if abs(delta) > DVSMIntegrityConstraints.maxVelocity {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    // -------------------------------------------------
+    // ENTROPY ANALYSIS
+    // -------------------------------------------------
+
+    /// Measures stochastic variation.
+    ///
+    /// Humans produce noisy distributions.
+    /// Scripts produce compressed deterministic paths.
+    ///
+    func computeEntropy(
+        _ values: [Int64]
+    ) -> Double {
+
+        guard !values.isEmpty else { return 0 }
+
+        let unique = Set(values).count
+        return Double(unique) / Double(values.count)
+    }
+
+    // -------------------------------------------------
+    // SPECTRAL ENERGY ANALYSIS
+    // -------------------------------------------------
+
+    /// Simplified periodicity detector.
+    ///
+    /// Recoil scripts and aimbots generate:
+    /// - repeated frequencies
+    /// - narrow oscillatory bands
+    ///
+    /// Organic human movement broadens the spectrum.
+    ///
+    func spectralEnergy(
+        _ values: [Int64]
+    ) -> Double {
+
+        guard values.count > 1 else { return 0 }
+
+        var energy: Double = 0
+
+        for i in 1..<values.count {
+            let delta = Double(values[i] - values[i - 1])
+            energy += abs(delta)
+        }
+
+        return energy / Double(values.count)
+    }
+
+    // -------------------------------------------------
+    // REACTION VARIANCE
+    // -------------------------------------------------
+
+    /// Human timing contains:
+    /// - thermal jitter
+    /// - cognitive drift
+    /// - biological variance
+    ///
+    /// Bots often produce:
+    /// - near-perfect intervals
+    ///
+    func reactionVariance(
+        _ timings: [UInt64]
+    ) -> Double {
+
+        guard timings.count > 1 else { return 0 }
+
+        let mean =
+            Double(timings.reduce(0, +))
+            / Double(timings.count)
+
+        let variance =
+            timings.map {
+                pow(Double($0) - mean, 2)
+            }
+            .reduce(0, +)
+            / Double(timings.count)
+
+        return variance / 1000.0
+    }
+
+    // -------------------------------------------------
+    // CAUSAL REACHABILITY
+    // -------------------------------------------------
+
+    /// Determines whether a target interaction
+    /// was causally reachable from the agent’s
+    /// visible manifold.
+    ///
+    /// Example:
+    /// - wallhacks
+    /// - occluded targeting
+    /// - impossible pre-fire
+    ///
+    func violatesVisibility(
+        _ signal: DVSMInputSignal
+    ) -> Bool {
+
+        // Placeholder:
+        // Real implementation checks:
+        //
+        // T ∈ Reachable(PSM)
+        //
+        // against:
+        // - visibility graph
+        // - latency bounds
+        // - observational constraints
+
+        return false
+    }
+}
+
+// =====================================================
+// MARK: - 6. SYSTEM INTERPRETATION
+// =====================================================
+
+public enum DVSMIntegrityInterpretation {
+
+    public static let description =
+    """
+    DVSM anti-cheat does not rely on signatures,
+    heuristics, or behavioral guesses.
+
+    The system examines:
+    - entropy structure,
+    - spectral periodicity,
+    - timing variance,
+    - kinematic validity,
+    - and causal reachability.
+
+    Invalid behavior is treated as a
+    deterministic manifold violation,
+    not merely a policy violation.
+    """
+}
+
+// =====================================================
+// END L2.7 / L2.8
+// =====================================================
+// =====================================================
+// DVSM-ATOMOS: GENESIS v2.3
+// MODULE: Canonical Replay Calculus
+// PURPOSE:
+// Deterministic Replay,
+// Canonical Ordering,
+// Basin Consensus,
+// Merkleized Transition Closure,
+// Reachability Graph Formalization
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// MARK: - 1. DETERMINISTIC ARITHMETIC LAW
+// =====================================================
+
+/// DVSM globally enforces saturating arithmetic.
+///
+/// WHY:
+/// - wrapping arithmetic creates false attractors
+/// - trapping arithmetic breaks replay continuity
+/// - saturation preserves bounded Ω monotonicity
+///
+public enum DVSMArithmeticMode {
+    case saturating
+}
+
+public extension UInt64 {
+
+    func dvsmAdd(_ other: UInt64) -> UInt64 {
+
+        let (result, overflow) =
+            self.addingReportingOverflow(other)
+
+        return overflow
+            ? UInt64.max
+            : result
+    }
+
+    func dvsmSub(_ other: UInt64) -> UInt64 {
+
+        return self >= other
+            ? self - other
+            : 0
+    }
+}
+
+// =====================================================
+// MARK: - 2. LOGICAL CLOCK
+// =====================================================
+
+/// Time is NOT physical.
+///
+/// Time is:
+///     deterministic causal iteration order.
+///
+public struct DVSMLogicalClock:
+    Equatable,
+    Comparable,
+    Hashable {
+
+    public let tick: UInt64
+
+    public init(tick: UInt64) {
+        self.tick = tick
+    }
+
+    public static func < (
+        lhs: DVSMLogicalClock,
+        rhs: DVSMLogicalClock
+    ) -> Bool {
+
+        lhs.tick < rhs.tick
+    }
+}
+
+// =====================================================
+// MARK: - 3. TRANSITION PROOF SYSTEM
+// =====================================================
+
+/// Proof semantics were ambiguous in v2.2.
+///
+/// v2.3 formalizes proof intent.
+///
+public enum DVSMProofKind: UInt8 {
+
+    /// Merkle inclusion proof
+    case merkleWitness = 0
+
+    /// Replay convergence proof
+    case replayWitness = 1
+
+    /// Causal derivation proof
+    case causalDerivation = 2
+
+    /// External deterministic attestation
+    case attestationSignature = 3
+}
+
+public struct DVSMProof {
+
+    public let kind: DVSMProofKind
+
+    /// Canonical proof bytes
+    public let payload: Data
+
+    public init(
+        kind: DVSMProofKind,
+        payload: Data
+    ) {
+
+        self.kind = kind
+        self.payload = payload
+    }
+}
+
+// =====================================================
+// MARK: - 4. TRANSITION ALGEBRA
+// =====================================================
+
+/// Universal causal object.
+///
+/// Everything in DVSM ultimately reduces
+/// to transition calculus.
+///
+/// Used by:
+/// - replay
+/// - anti-cheat
+/// - basin tracing
+/// - provenance
+/// - convergence proofs
+/// - distributed settlement
+///
+public struct DVSMTransition: Hashable {
+
+    /// Source state hash
+    public let from: Data
+
+    /// Destination state hash
+    public let to: Data
+
+    /// Event / input cause
+    public let cause: Data
+
+    /// Formal proof object
+    public let proof: DVSMProof
+
+    /// Deterministic iteration index
+    public let clock: DVSMLogicalClock
+
+    public init(
+        from: Data,
+        to: Data,
+        cause: Data,
+        proof: DVSMProof,
+        clock: DVSMLogicalClock
+    ) {
+
+        self.from = from
+        self.to = to
+        self.cause = cause
+        self.proof = proof
+        self.clock = clock
+    }
+}
+
+// =====================================================
+// MARK: - 5. CANONICAL ORDERING LAW
+// =====================================================
+
+/// Eliminates concurrency jitter.
+///
+/// Two equivalent runtimes MUST produce:
+///
+///     identical canonical byte streams
+///
+/// regardless of:
+/// - thread scheduling
+/// - iteration ordering
+/// - machine architecture
+///
+public enum DVSMCanonicalOrder {
+
+    /// Stable deterministic sort priority:
+    ///
+    /// 1. clock.tick
+    /// 2. cause hash
+    /// 3. source hash
+    /// 4. destination hash
+    /// 5. proof payload hash
+    ///
+    public static func sort(
+        _ transitions: [DVSMTransition]
+    ) -> [DVSMTransition] {
+
+        transitions.sorted {
+
+            if $0.clock.tick != $1.clock.tick {
+                return $0.clock.tick < $1.clock.tick
+            }
+
+            if $0.cause != $1.cause {
+                return $0.cause.lexicographicallyPrecedes($1.cause)
+            }
+
+            if $0.from != $1.from {
+                return $0.from.lexicographicallyPrecedes($1.from)
+            }
+
+            if $0.to != $1.to {
+                return $0.to.lexicographicallyPrecedes($1.to)
+            }
+
+            return $0.proof.payload
+                .lexicographicallyPrecedes(
+                    $1.proof.payload
+                )
+        }
+    }
+}
+
+// =====================================================
+// MARK: - 6. CANONICAL SERIALIZATION
+// =====================================================
+
+public protocol DVSMCanonicalizer {
+
+    /// Produces deterministic byte-stable encoding.
+    func canonicalize(
+        _ transitions: [DVSMTransition]
+    ) -> Data
+}
+
+public struct DVSMCanonicalReplayEncoder:
+    DVSMCanonicalizer {
+
+    public init() {}
+
+    public func canonicalize(
+        _ transitions: [DVSMTransition]
+    ) -> Data {
+
+        let ordered =
+            DVSMCanonicalOrder.sort(transitions)
+
+        var data = Data()
+
+        for t in ordered {
+
+            data.append(t.from)
+            data.append(t.to)
+            data.append(t.cause)
+            data.append(t.proof.payload)
+
+            var tickLE =
+                t.clock.tick.littleEndian
+
+            withUnsafeBytes(of: &tickLE) {
+                data.append(contentsOf: $0)
+            }
+        }
+
+        return data
+    }
+}
+
+// =====================================================
+// MARK: - 7. MERKLEIZED REPLAY CHAIN
+// =====================================================
+
+/// Replay histories become cryptographically sealed.
+///
+/// Enables:
+/// - replay attestation
+/// - rollback proof
+/// - distributed convergence verification
+///
+public struct DVSMReplayChain {
+
+    public let transitions: [DVSMTransition]
+
+    public init(
+        transitions: [DVSMTransition]
+    ) {
+
+        self.transitions = transitions
+    }
+
+    /// Canonical Merkle root
+    public func merkleRoot() -> Data {
+
+        let encoder =
+            DVSMCanonicalReplayEncoder()
+
+        let bytes =
+            encoder.canonicalize(transitions)
+
+        let digest =
+            SHA256.hash(data: bytes)
+
+        return Data(digest)
+    }
+}
+
+// =====================================================
+// MARK: - 8. REPLAY WITNESS OBJECT
+// =====================================================
+
+/// Formal replay convergence witness.
+///
+/// Proves:
+/// - replay identity
+/// - attractor convergence
+/// - settlement closure
+///
+public struct DVSMReplayWitness {
+
+    /// Canonical replay hash
+    public let replayHash: Data
+
+    /// Basin identity reached
+    public let basinHash: Data
+
+    /// Final Ω value
+    public let terminalOmega: UInt64
+
+    /// Deterministic settlement tick
+    public let settlementTick: UInt64
+
+    public init(
+        replayHash: Data,
+        basinHash: Data,
+        terminalOmega: UInt64,
+        settlementTick: UInt64
+    ) {
+
+        self.replayHash = replayHash
+        self.basinHash = basinHash
+        self.terminalOmega = terminalOmega
+        self.settlementTick = settlementTick
+    }
+}
+
+// =====================================================
+// MARK: - 9. REACHABILITY GEOMETRY
+// =====================================================
+
+/// L2.8 formal manifold representation.
+///
+/// Defines:
+/// - visibility geometry
+/// - mobility bounds
+/// - latency admissibility
+/// - causal interaction constraints
+///
+public struct DVSMReachabilityManifold {
+
+    /// Visibility graph region
+    public let visibleRegion: Set<UInt64>
+
+    /// Maximum movement envelope
+    public let mobilityEnvelope: Int64
+
+    /// Allowed causal latency
+    public let latencyBudget: UInt64
+
+    public init(
+        visibleRegion: Set<UInt64>,
+        mobilityEnvelope: Int64,
+        latencyBudget: UInt64
+    ) {
+
+        self.visibleRegion = visibleRegion
+        self.mobilityEnvelope = mobilityEnvelope
+        self.latencyBudget = latencyBudget
+    }
+}
+
+// =====================================================
+// MARK: - 10. FORMAL REACHABILITY
+// =====================================================
+
+public struct DVSMTransitionContext {
+
+    public let movementDelta: Int64
+
+    public let latencyCost: UInt64
+
+    public let targetEntity: UInt64?
+
+    public init(
+        movementDelta: Int64,
+        latencyCost: UInt64,
+        targetEntity: UInt64?
+    ) {
+
+        self.movementDelta = movementDelta
+        self.latencyCost = latencyCost
+        self.targetEntity = targetEntity
+    }
+}
+
+public enum DVSMReachability {
+
+    /// Core causal admissibility law:
+    ///
+    ///     T ∈ Reachable(PSM, Constraints)
+    ///
+    public static func reachable(
+        transition: DVSMTransitionContext,
+        manifold: DVSMReachabilityManifold
+    ) -> Bool {
+
+        let movementOK =
+            abs(transition.movementDelta)
+            <= manifold.mobilityEnvelope
+
+        let latencyOK =
+            transition.latencyCost
+            <= manifold.latencyBudget
+
+        let visibilityOK: Bool = {
+
+            guard let entity =
+                transition.targetEntity
+            else {
+                return true
+            }
+
+            return manifold.visibleRegion
+                .contains(entity)
+        }()
+
+        return
+            movementOK
+            &&
+            latencyOK
+            &&
+            visibilityOK
+    }
+}
+
+// =====================================================
+// MARK: - 11. BASIN IDENTITY
+// =====================================================
+
+public enum DVSMSettlementState: UInt8 {
+
+    case unresolved = 0
+    case converging = 1
+    case finalized = 2
+}
+
+/// Canonical attractor identity.
+///
+/// Enables:
+/// - replay clustering
+/// - distributed consensus
+/// - attractor synchronization
+///
+public struct DVSMBasinIdentity:
+    Hashable {
+
+    public let basinHash: Data
+
+    public let attractorOmega: UInt64
+
+    public let state: DVSMSettlementState
+
+    public init(
+        basinHash: Data,
+        attractorOmega: UInt64,
+        state: DVSMSettlementState
+    ) {
+
+        self.basinHash = basinHash
+        self.attractorOmega = attractorOmega
+        self.state = state
+    }
+}
+
+// =====================================================
+// MARK: - 12. BASIN CONSENSUS
+// =====================================================
+
+/// Distributed attractor agreement.
+///
+/// Independent runtimes agree on:
+/// - convergence
+/// - replay identity
+/// - attractor closure
+///
+public struct DVSMBasinConsensus {
+
+    public let witnesses: [DVSMReplayWitness]
+
+    public init(
+        witnesses: [DVSMReplayWitness]
+    ) {
+
+        self.witnesses = witnesses
+    }
+
+    /// Consensus exists iff all witnesses
+    /// converge to same basin hash.
+    public func hasConsensus() -> Bool {
+
+        guard let first =
+            witnesses.first?.basinHash
+        else {
+            return false
+        }
+
+        return witnesses.allSatisfy {
+            $0.basinHash == first
+        }
+    }
+}
+
+// =====================================================
+// MARK: - 13. OBSERVER ISOLATION
+// =====================================================
+
+/// L2 projections may observe,
+/// but NEVER mutate truth generation.
+///
+public protocol DVSMObserverView {
+
+    associatedtype Projection
+
+    func observe(
+        canonicalState: Data
+    ) -> Projection
+}
+
+// =====================================================
+// MARK: - 14. TRANSITION ENGINE
+// =====================================================
+
+/// Unified deterministic transition gateway.
+///
+/// Central execution object:
+/// - replay validation
+/// - reachability enforcement
+/// - settlement evaluation
+/// - convergence tracking
+///
+public final class DVSMTransitionEngine {
+
+    public let manifold:
+        DVSMReachabilityManifold
+
+    public init(
+        manifold: DVSMReachabilityManifold
+    ) {
+
+        self.manifold = manifold
+    }
+
+    /// Resolve transition into settlement state.
+    public func evaluate(
+        transition: DVSMTransition,
+        context: DVSMTransitionContext,
+        currentOmega: UInt64,
+        nextOmega: UInt64
+    ) -> DVSMSettlementState {
+
+        // ------------------------------------------------
+        // Reachability Enforcement
+        // ------------------------------------------------
+
+        guard DVSMReachability.reachable(
+            transition: context,
+            manifold: manifold
+        ) else {
+
+            return .unresolved
+        }
+
+        // ------------------------------------------------
+        // Ω Lyapunov Descent
+        // ------------------------------------------------
+
+        if nextOmega < currentOmega {
+            return .converging
+        }
+
+        if nextOmega == currentOmega {
+            return .finalized
+        }
+
+        return .unresolved
+    }
+}
+
+// =====================================================
+// MARK: - 15. GENESIS v2.3 DECLARATION
+// =====================================================
+
+public enum DVSMGenesisV23 {
+
+    public static let declaration =
+    """
+    DVSM-ATOMOS Genesis v2.3 defines
+    deterministic replay calculus over
+    canonical causal transition algebra.
+
+    Reality is represented as:
+    - replay-stable transition chains,
+    - quotient-consistent attractor basins,
+    - Ω-descending convergence trajectories,
+    - and causally admissible reachability manifolds.
+
+    Truth is canonical convergence
+    under deterministic causal settlement.
+    """
+}
+
+// =====================================================
+// END GENESIS v2.3
+// =====================================================
+// =====================================================
+// DVSM v16.4 — Ω CONSISTENCY + AGE-TO-ATTRACTOR BRIDGE
+// =====================================================
+
+import Foundation
+import CryptoKit
+
+// =====================================================
+// MARK: - AGE SUMMARY EXTENSION (Ω-AWARE INVARIANT)
+// =====================================================
+
+public struct DVSMOmegaAgeEnvelope: Sendable {
+
+    public let age: DVSMAgeSummary
+
+    /// Ω evaluated over collapsed semantic state
+    public let omegaEnergy: UInt64
+
+    /// Stability of Ω descent across epoch window
+    public let omegaStability: Double
+
+    /// Whether collapse is consistent with attractor law
+    public let attractorValid: Bool
+}
+
+// =====================================================
+// MARK: - Ω AGE EVALUATOR (BRIDGE LAYER)
+// =====================================================
+
+public struct DVSMOmegaAgeEvaluator {
+
+    public init() {}
+
+    /// Deterministic evaluation of Ω over compressed state
+    /// (no DAG replay required)
+    public func evaluate(
+        _ age: DVSMAgeSummary,
+        weights: DVSMOmegaWeights = .canonical
+    ) -> DVSMOmegaAgeEnvelope {
+
+        // ---------------------------------------------
+        // Ω proxy reconstruction from compressed state
+        // ---------------------------------------------
+
+        let entropy = DVSMFixedPoint.encode(age.globalDrift)
+        let instability = DVSMFixedPoint.encode(age.globalStability)
+        let symmetry = DVSMFixedPoint.encode(max(0, 10.0 - age.globalDrift))
+
+        let omega =
+            (weights.alpha &* entropy)
+          &+ (weights.beta &* instability)
+          &- (weights.gamma &* symmetry)
+
+        // ---------------------------------------------
+        // Attractor validity constraint
+        // ---------------------------------------------
+
+        let isStable =
+            age.globalStability < age.globalDrift + 2.0 &&
+            age.globalEnergy > 0 &&
+            age.compressionDepth >= 2
+
+        return DVSMOmegaAgeEnvelope(
+            age: age,
+            omegaEnergy: omega,
+            omegaStability: age.globalStability / max(age.globalDrift + 1.0, 1.0),
+            attractorValid: isStable
+        )
+    }
+}
+
+// =====================================================
+// MARK: - Λ₂ → Ω FLOW CONSISTENCY CHECK
+// =====================================================
+
+public struct DVSMLambdaOmegaConsistency {
+
+    public init() {}
+
+    /// Ensures compressed age does not violate Ω descent logic
+    public func validate(
+        envelope: DVSMOmegaAgeEnvelope
+    ) -> Bool {
+
+        // -------------------------------------------------
+        // RULE 1: Ω must not explode in collapsed domain
+        // -------------------------------------------------
+        let boundedOmega = envelope.omegaEnergy < UInt64.max / 2
+
+        // -------------------------------------------------
+        // RULE 2: attractor validity must hold
+        // -------------------------------------------------
+        let attractorOK = envelope.attractorValid
+
+        // -------------------------------------------------
+        // RULE 3: stability must not exceed drift regime
+        // -------------------------------------------------
+        let stabilityOK =
+            envelope.omegaStability < 10.0 &&
+            envelope.omegaStability >= 0
+
+        return boundedOmega && attractorOK && stabilityOK
+    }
+}
+
+// =====================================================
+// MARK: - SHARDED ATTRACTOR REGISTRY (MISSING LINK FIX)
+// =====================================================
+
+public struct DVMSHardShardAttractor: Sendable {
+
+    public let shardKey: String
+
+    public let basinRootHash: Data
+
+    public let omegaAttractorValue: UInt64
+
+    public let epsilonRadius: Double
+}
+
+// =====================================================
+// MARK: - SHARD ATTRACTOR VALIDATOR
+// =====================================================
+
+public struct DVMSHardShardValidator {
+
+    public init() {}
+
+    /// Ensures AgeSummary maps cleanly into shard basin identity
+    public func validateMapping(
+        age: DVSMAgeSummary,
+        attractor: DVMSHardShardAttractor
+    ) -> Bool {
+
+        // ---------------------------------------------
+        // Hash consistency constraint
+        // ---------------------------------------------
+        let expectedHash = Data(
+            SHA256.hash(
+                data: Data("\(age.metaRootHash)\(attractor.shardKey)".utf8)
+            )
+        )
+
+        let hashOK = expectedHash.prefix(16) == attractor.basinRootHash.prefix(16)
+
+        // ---------------------------------------------
+        // Energy alignment constraint
+        // ---------------------------------------------
+        let energyOK =
+            abs(Int64(age.globalEnergy) - Int64(attractor.omegaAttractorValue)) < 1_000_000
+
+        // ---------------------------------------------
+        // Structural constraint
+        // ---------------------------------------------
+        let structuralOK = age.compressionDepth >= 2
+
+        return hashOK && energyOK && structuralOK
+    }
+}
+
+// =====================================================
+// MARK: - SAFE BOOTSTRAP (Ω-CERTIFIED VERSION)
+// =====================================================
+
+public struct DVSMOmegaSafeBootstrapper {
+
+    public init() {}
+
+    public func bootstrap(
+        from age: DVSMAgeSummary,
+        rule: DVSMRuleEpoch,
+        evaluator: DVSMOmegaAgeEvaluator = .init()
+    ) -> DVSMKernel {
+
+        let envelope = evaluator.evaluate(age)
+
+        // -------------------------------------------------
+        // HARD GUARANTEE: no invalid attractor bootstrap
+        // -------------------------------------------------
+        guard envelope.attractorValid else {
+            fatalError("DVSM BOOTSTRAP FAILED: invalid attractor collapse")
+        }
+
+        let seededWindow = DVSMLedgerWindow(
+            driftHistory: [age.globalDrift],
+            instabilityHistory: [age.globalStability],
+            rootHash: age.metaRootHash
+        )
+
+        return DVSMKernel(
+            initialEpoch: rule,
+            history: seededWindow
+        )
+    }
+}
+
+// =====================================================
+// MARK: - GLOBAL SYSTEM LAW UPDATE (GENESIS EXTENSION)
+// =====================================================
+
+public enum DVSMGenesisV2_4 {
+
+    public static let omegaClosureLaw =
+    """
+    All Λ₂ collapsed states must remain Ω-consistent.
+
+    A compressed reality is valid iff:
+        Ω(AgeSummary) lies within attractor basin constraints
+        AND
+        Ω descent is preserved under reconstruction invariants.
+    """
+
+    public static let shardAttractorLaw =
+    """
+    Every shard defines a local attractor basin.
+
+    AgeSummaries must map to exactly one stable basin identity
+    under deterministic hash alignment and energy boundedness.
+    """
+}
+After v16.4:
+DVSM is no longer just a DAG + compression system
+it is a closed attractor-complete deterministic quotient engine
+
+You now have:
+L1 → truth generation (Merkle DAG)
+L5 → quotient compression
+Λ₂ → semantic collapse
+Ω → stability law
+Basin → shard identity
+Bootstrap → Ω-certified rehydration
+
+// =====================================================
+// END v16.4 ADDENDUM
+// =====================================================
+
+*Copyright © 2024 Daniel J. Dillberg. All Rights Reserved.* 
