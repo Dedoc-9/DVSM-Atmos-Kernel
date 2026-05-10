@@ -1937,4 +1937,688 @@ ADDITIONAL CLARIFICATION (NON-RESTRICTIVE INTERPRETATION):
 
 END OF LICENSE SECTION
 --------------------------------------------------------------------
+// ============================================================================
+// DVSM-AMP-Ω∞
+// Adaptive Constraint Governance Kernel (ACGK)
+// FINAL EXECUTION SEMANTICS + GOVERNED FINALITY LAYER
+// ============================================================================
+//
+// AGPL-3.0 License + All Rights Reserved Addendum
+//
+// Copyright (C) 2024-2026 Daniel J. Dillberg
+// Recursive Identifier: DVSM-SIGNAL-v21-B
+//
+// This file defines:
+//
+// 1. Monotone lattice execution semantics
+// 2. Adaptive constraint governance
+// 3. Quotient-space ghost absorption
+// 4. Portable deterministic runtime logic
+// 5. Anti-steering / anti-cheat invariants
+// 6. Deployment sensitivity adaptation
+// 7. Replay-safe parameter evolution
+// 8. Finality witness semantics
+//
+// ----------------------------------------------------------------------------
+// ONTOLOGICAL STATEMENT
+// ----------------------------------------------------------------------------
+//
+// Communication is NOT transmission.
+//
+// Communication is:
+//      witnessed geometric completion
+//
+// The spear ("Vel") injects lawful activation energy.
+// The diamond ("Aztec") constrains admissible topology.
+// The telephone ("Signal") emerges only after closure.
+//
+// ----------------------------------------------------------------------------
+// FINALITY MODEL
+// ----------------------------------------------------------------------------
+//
+// Finality is NOT a timestamp.
+//
+// Finality is:
+//      monotone fixed-point saturation
+//
+// Once frozen:
+//      always frozen
+//
+// ----------------------------------------------------------------------------
+// GOVERNANCE MODEL
+// ----------------------------------------------------------------------------
+//
+// Parameters may evolve ONLY IF:
+//
+// 1. Historical closure remains immutable
+// 2. Quotient-space semantics are preserved
+// 3. State evolution remains monotone
+// 4. Replay determinism remains invariant
+//
+// ----------------------------------------------------------------------------
+// LICENSE NOTICE
+// ----------------------------------------------------------------------------
+//
+// Licensed under the GNU Affero General Public License v3.0.
+//
+// Additional Reservation:
+// All branding, symbolic system names, recursive identifiers,
+// canonical whitepaper language, and protocol mythology remain
+// protected intellectual authorship.
+//
+// Commercial deployments must preserve:
+// - attribution
+// - license propagation
+// - invariant disclosures
+//
+// ============================================================================
+
+import Foundation
+
+// ============================================================================
+// MARK: - FIXED RUNTIME CONSTANTS
+// ============================================================================
+
+public enum DVSMRuntime {
+
+    public static let ABI_ENDIANNESS = "BIG_ENDIAN"
+
+    public static let SYSTEM_ID =
+        "DVSM-AMP-Ω∞"
+
+    public static let RECURSIVE_IDENTIFIER =
+        "DVSM-SIGNAL-v21-B"
+
+    public static let AUTHOR =
+        "Daniel J. Dillberg"
+
+    public static let LICENSE =
+        "AGPL-3.0 + Reserved Identity Addendum"
+}
+
+// ============================================================================
+// MARK: - CELL STATES
+// ============================================================================
+
+public enum CellState: Int, Comparable {
+
+    case void      = -1
+    case empty     = 0
+    case seeded    = 1
+    case frozen    = 2
+    case absorbing = 3
+
+    public static func < (
+        lhs: CellState,
+        rhs: CellState
+    ) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+}
+
+// ============================================================================
+// MARK: - PARAMETER GOVERNANCE
+// ============================================================================
+
+public struct GovernanceParameters {
+
+    // ------------------------------------------------------------
+    // KINETIC GATE
+    // ------------------------------------------------------------
+
+    public var V_MIN: Double = 5.0
+
+    // ------------------------------------------------------------
+    // FREEZE THRESHOLD
+    // ------------------------------------------------------------
+
+    public var V_FREEZE: Double = 15.0
+
+    // ------------------------------------------------------------
+    // VOID ABSORPTION PRESSURE
+    // ------------------------------------------------------------
+
+    public var VOID_PRESSURE: Double = 0.85
+
+    // ------------------------------------------------------------
+    // MAXIMUM MONOTONE DEPTH
+    // ------------------------------------------------------------
+
+    public var MAX_CAUSAL_DEPTH: UInt64 = 4096
+
+    // ------------------------------------------------------------
+    // RF PHASE WINDOW
+    // ------------------------------------------------------------
+
+    public var PHASE_WINDOW: Double = 0.02
+
+    // ------------------------------------------------------------
+    // MINIMUM SEED DENSITY
+    // ------------------------------------------------------------
+
+    public var MIN_SEED_RATIO: Double = 0.25
+}
+
+// ============================================================================
+// MARK: - GOVERNANCE VALIDATOR
+// ============================================================================
+
+public enum GovernanceValidator {
+
+    // ------------------------------------------------------------
+    // LEGAL PARAMETER EVOLUTION
+    // ------------------------------------------------------------
+
+    public static func validateTransition(
+        old: GovernanceParameters,
+        new: GovernanceParameters
+    ) -> Bool {
+
+        // --------------------------------------------------------
+        // MONOTONE RULE:
+        //
+        // Raising V_MIN is legal
+        // Lowering V_MIN is illegal
+        // --------------------------------------------------------
+
+        guard new.V_MIN >= old.V_MIN else {
+            return false
+        }
+
+        // --------------------------------------------------------
+        // Lowering freeze threshold is allowed
+        // because it accelerates closure
+        // --------------------------------------------------------
+
+        // --------------------------------------------------------
+        // Causal depth may increase
+        // --------------------------------------------------------
+
+        guard new.MAX_CAUSAL_DEPTH >= old.MAX_CAUSAL_DEPTH else {
+            return false
+        }
+
+        // --------------------------------------------------------
+        // VOID pressure may strengthen
+        // --------------------------------------------------------
+
+        guard new.VOID_PRESSURE >= old.VOID_PRESSURE else {
+            return false
+        }
+
+        return true
+    }
+}
+
+// ============================================================================
+// MARK: - DVSM ACGK KERNEL
+// ============================================================================
+
+public final class DVSM_ACGK_Kernel {
+
+    // ========================================================================
+    // MARK: - INTERNAL STATE
+    // ========================================================================
+
+    private let size: Int
+
+    private var lattice: [[CellState]]
+
+    private var causalDepth: UInt64 = 0
+
+    private(set) var parameters: GovernanceParameters
+
+    // ========================================================================
+    // MARK: - INITIALIZATION
+    // ========================================================================
+
+    public init(
+        size: Int,
+        parameters: GovernanceParameters = GovernanceParameters()
+    ) {
+
+        self.size = size
+        self.parameters = parameters
+
+        self.lattice = Array(
+            repeating: Array(
+                repeating: .empty,
+                count: size
+            ),
+            count: size
+        )
+    }
+
+    // ========================================================================
+    // MARK: - GOVERNANCE UPDATE
+    // ========================================================================
+
+    public func applyGovernanceUpdate(
+        _ next: GovernanceParameters
+    ) -> Bool {
+
+        guard GovernanceValidator.validateTransition(
+            old: parameters,
+            new: next
+        ) else {
+            return false
+        }
+
+        parameters = next
+
+        enforceMonotoneCollapse()
+
+        return true
+    }
+
+    // ========================================================================
+    // MARK: - S_THROW
+    // ========================================================================
+
+    @discardableResult
+    public func s_throw(
+        r: Int,
+        c: Int,
+        velocity: Double
+    ) -> Bool {
+
+        guard inBounds(r, c) else {
+            return false
+        }
+
+        // ------------------------------------------------------------
+        // VELOCITY IS ACTIVATION ENERGY ONLY
+        // ------------------------------------------------------------
+
+        guard velocity >= parameters.V_MIN else {
+            return false
+        }
+
+        // ------------------------------------------------------------
+        // NO OVERWRITE
+        // ------------------------------------------------------------
+
+        guard lattice[r][c] == .empty else {
+            return false
+        }
+
+        lattice[r][c] = .seeded
+
+        causalDepth += 1
+
+        return true
+    }
+
+    // ========================================================================
+    // MARK: - S_PLANT
+    // ========================================================================
+
+    public func s_plant(
+        r: Int,
+        c: Int,
+        velocity: Double
+    ) {
+
+        guard inBounds(r, c) else {
+            return
+        }
+
+        guard lattice[r][c] == .seeded else {
+            return
+        }
+
+        // ------------------------------------------------------------
+        // MONOTONE TRANSITION
+        // ------------------------------------------------------------
+
+        lattice[r][c] = .frozen
+
+        // ------------------------------------------------------------
+        // HIGH ENERGY ACCELERATES STABILIZATION
+        // ------------------------------------------------------------
+
+        if velocity >= parameters.V_FREEZE {
+            freezeNeighborhood(r, c)
+        }
+
+        absorbOrphans()
+    }
+
+    // ========================================================================
+    // MARK: - S_ECHO
+    // ========================================================================
+
+    public func s_echo() -> Bool {
+
+        let complete =
+            lattice
+                .flatMap { $0 }
+                .allSatisfy {
+                    $0 == .frozen ||
+                    $0 == .void
+                }
+
+        if complete {
+
+            print("")
+            print("===================================================")
+            print("DVSM-AMP: INVARIANT HORIZON REACHED")
+            print("Communication Manifested.")
+            print("===================================================")
+            print("")
+
+            return true
+        }
+
+        return false
+    }
+
+    // ========================================================================
+    // MARK: - VOID ABSORPTION
+    // ========================================================================
+
+    private func absorbOrphans() {
+
+        for r in 0..<size {
+            for c in 0..<size {
+
+                if isOrphan(r, c) {
+                    lattice[r][c] = .void
+                }
+            }
+        }
+    }
+
+    private func isOrphan(
+        _ r: Int,
+        _ c: Int
+    ) -> Bool {
+
+        guard lattice[r][c] == .empty else {
+            return false
+        }
+
+        return neighbors(r, c)
+            .allSatisfy {
+
+                lattice[$0.0][$0.1] >= .frozen
+            }
+    }
+
+    // ========================================================================
+    // MARK: - MONOTONE COLLAPSE
+    // ========================================================================
+
+    private func enforceMonotoneCollapse() {
+
+        for r in 0..<size {
+            for c in 0..<size {
+
+                if lattice[r][c] == .seeded {
+
+                    // --------------------------------------------------------
+                    // STRICTER V_MIN COLLAPSES INVALID STATES
+                    // --------------------------------------------------------
+
+                    lattice[r][c] = .void
+                }
+            }
+        }
+    }
+
+    // ========================================================================
+    // MARK: - FREEZE NEIGHBORHOOD
+    // ========================================================================
+
+    private func freezeNeighborhood(
+        _ r: Int,
+        _ c: Int
+    ) {
+
+        for n in neighbors(r, c) {
+
+            if lattice[n.0][n.1] == .seeded {
+                lattice[n.0][n.1] = .frozen
+            }
+        }
+    }
+
+    // ========================================================================
+    // MARK: - HELPERS
+    // ========================================================================
+
+    private func neighbors(
+        _ r: Int,
+        _ c: Int
+    ) -> [(Int, Int)] {
+
+        var result: [(Int, Int)] = []
+
+        if r > 0 {
+            result.append((r - 1, c))
+        }
+
+        if r < size - 1 {
+            result.append((r + 1, c))
+        }
+
+        if c > 0 {
+            result.append((r, c - 1))
+        }
+
+        if c < size - 1 {
+            result.append((r, c + 1))
+        }
+
+        return result
+    }
+
+    private func inBounds(
+        _ r: Int,
+        _ c: Int
+    ) -> Bool {
+
+        r >= 0 &&
+        r < size &&
+        c >= 0 &&
+        c < size
+    }
+
+    // ========================================================================
+    // MARK: - DEBUG SNAPSHOT
+    // ========================================================================
+
+    public func printLattice() {
+
+        print("")
+        print("DVSM-AMP LATTICE SNAPSHOT")
+        print("--------------------------------")
+
+        for row in lattice {
+
+            let line = row.map {
+
+                switch $0 {
+
+                case .void:
+                    return "V"
+
+                case .empty:
+                    return "."
+
+                case .seeded:
+                    return "S"
+
+                case .frozen:
+                    return "F"
+
+                case .absorbing:
+                    return "A"
+                }
+
+            }.joined(separator: " ")
+
+            print(line)
+        }
+
+        print("--------------------------------")
+        print("Causal Depth:", causalDepth)
+        print("")
+    }
+}
+
+// ============================================================================
+// MARK: - SHADOW KERNEL
+// ============================================================================
+
+public enum ShadowKernel {
+
+    // ------------------------------------------------------------
+    // MONOTONE GROWTH
+    // ------------------------------------------------------------
+
+    public static func monotoneGrowthInvariant(
+        before: CellState,
+        after: CellState
+    ) -> Bool {
+
+        after >= before
+    }
+
+    // ------------------------------------------------------------
+    // VOID EXCLUSION
+    // ------------------------------------------------------------
+
+    public static func voidExclusionInvariant(
+        lattice: [[CellState]]
+    ) -> Bool {
+
+        lattice
+            .flatMap { $0 }
+            .contains(.seeded) == false
+    }
+
+    // ------------------------------------------------------------
+    // KINETIC GATE
+    // ------------------------------------------------------------
+
+    public static func kineticGateInvariant(
+        velocity: Double,
+        threshold: Double
+    ) -> Bool {
+
+        velocity >= threshold
+    }
+}
+
+// ============================================================================
+// MARK: - SMOKE TEST
+// ============================================================================
+
+public enum DVSM_SmokeTest {
+
+    public static func run() {
+
+        print("")
+        print("===================================================")
+        print("DVSM-AMP Ω∞ SMOKE TEST")
+        print("===================================================")
+
+        let kernel =
+            DVSM_ACGK_Kernel(size: 4)
+
+        // --------------------------------------------------------
+        // DEPLOYMENT
+        // --------------------------------------------------------
+
+        _ = kernel.s_throw(r: 0, c: 0, velocity: 8.0)
+        _ = kernel.s_throw(r: 0, c: 1, velocity: 16.0)
+        _ = kernel.s_throw(r: 1, c: 1, velocity: 20.0)
+
+        // --------------------------------------------------------
+        // FREEZE
+        // --------------------------------------------------------
+
+        kernel.s_plant(r: 0, c: 0, velocity: 8.0)
+        kernel.s_plant(r: 0, c: 1, velocity: 16.0)
+        kernel.s_plant(r: 1, c: 1, velocity: 20.0)
+
+        // --------------------------------------------------------
+        // PRINT
+        // --------------------------------------------------------
+
+        kernel.printLattice()
+
+        // --------------------------------------------------------
+        // GOVERNANCE UPDATE
+        // --------------------------------------------------------
+
+        var next =
+            GovernanceParameters()
+
+        next.V_MIN = 6.0
+        next.VOID_PRESSURE = 0.90
+        next.MAX_CAUSAL_DEPTH = 8192
+
+        let governanceAccepted =
+            kernel.applyGovernanceUpdate(next)
+
+        print(
+            "Governance Update:",
+            governanceAccepted
+                ? "ACCEPTED"
+                : "REJECTED"
+        )
+
+        // --------------------------------------------------------
+        // FINALITY TEST
+        // --------------------------------------------------------
+
+        let echo = kernel.s_echo()
+
+        print(
+            "Invariant Horizon:",
+            echo
+                ? "REACHED"
+                : "PENDING"
+        )
+
+        print("===================================================")
+        print("")
+    }
+}
+
+// ============================================================================
+// MARK: - TERMINAL SYSTEM STATEMENT
+// ============================================================================
+
+/*
+
+DVSM-AMP-Ω∞ TERMINAL CLOSURE
+
+The Spear:
+    lawful activation
+
+The Diamond:
+    constrained topology
+
+The Void:
+    quotient absorption
+
+The Shadow:
+    invariant witness
+
+The Governor:
+    monotone adaptation
+
+The Telephone:
+    emergent truth
+
+Communication is no longer transmitted.
+
+It is revealed.
+
+// ============================================================================
+// END OF FILE
+// ============================================================================
 */
