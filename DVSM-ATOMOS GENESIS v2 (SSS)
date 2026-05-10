@@ -1,0 +1,412 @@
+-- =====================================================
+-- DVSM-ATOMOS: GENESIS v2
+-- SYSTEM: Causally-Closed Deterministic Reality Engine
+-- PURPOSE: Metric → Quotient → Dynamics → Attractor Closure
+-- =====================================================
+//
+//  DVSM_Atomos_Whitepaper_v0_1.swift
+//  DVSM Core Specification Artifact
+//
+//  NOTE:
+//  This file is a SYSTEM WHITEPAPER ENCODED IN SWIFT.
+//  It is NOT runtime application logic.
+//  It defines deterministic causal semantics, not UI behavior.
+//
+
+import Foundation
+
+// =====================================================
+// MARK: - 1. CORE ONTOLOGY
+// =====================================================
+
+/// A State is a history-sealed causal object.
+/// It is NOT a snapshot; it is a structural equivalence class.
+public protocol DVSMState {
+
+    /// Cryptographic or structural identity
+    var identityHash: Data { get }
+
+    /// Causal structure fingerprint (partial order encoding)
+    var causalFingerprint: Data { get }
+
+    /// Residual entropy of execution ambiguity
+    var causalEntropy: Double { get }
+}
+
+// =====================================================
+// MARK: - 2. EVENT SPACE (CAUSAL PRIMITIVE)
+// =====================================================
+
+/// Events define causal dependencies (partial order graph)
+public struct DVSMEvent {
+
+    public let id: UInt64
+
+    /// Structural payload (not temporal)
+    public let payloadHash: Data
+
+    /// Optional semantic tag (non-authoritative)
+    public let tag: UInt32?
+}
+
+// =====================================================
+// MARK: - 3. CAUSAL GEOMETRY (PARTIAL ORDER SPACE)
+// =====================================================
+
+public struct DVSMCausalGraph {
+
+    /// Directed dependency edges: u → v means u must precede v
+    public var edges: [(UInt64, UInt64)]
+
+    /// All events in system
+    public var nodes: [DVSMEvent]
+
+    /// Concurrency: no ordering constraint
+    public func isConcurrent(_ a: UInt64, _ b: UInt64) -> Bool {
+        let forward = edges.contains { $0.0 == a && $0.1 == b }
+        let backward = edges.contains { $0.0 == b && $0.1 == a }
+        return !forward && !backward
+    }
+}
+
+// =====================================================
+// MARK: - 4. METRIC SPACE (dist_H)
+// =====================================================
+
+public struct DVSMMetricWeights {
+    public var alpha: Double   // identity
+    public var beta: Double    // causal structure
+    public var gamma: Double   // entropy
+}
+
+public enum DVSMMetric {
+
+    /// Core quotient-space metric
+    public static func distH(
+        _ a: DVSMStateLike,
+        _ b: DVSMStateLike,
+        weights: DVSMMetricWeights
+    ) -> Double {
+
+        let identity = hamming(a.identityHash, b.identityHash)
+        let causal   = hamming(a.causalFingerprint, b.causalFingerprint)
+        let entropy  = abs(a.causalEntropy - b.causalEntropy)
+
+        return
+            weights.alpha * identity +
+            weights.beta  * causal +
+            weights.gamma * entropy
+    }
+
+    private static func hamming(_ a: Data, _ b: Data) -> Double {
+        let count = min(a.count, b.count)
+        guard count > 0 else { return 0 }
+
+        var diff: Double = 0
+        for i in 0..<count {
+            diff += Double((a[i] ^ b[i]).nonzeroBitCount)
+        }
+        return diff / Double(count * 8)
+    }
+}
+
+// Helper abstraction for metric input projection
+public protocol DVSMStateLike {
+    var identityHash: Data { get }
+    var causalFingerprint: Data { get }
+    var causalEntropy: Double { get }
+}
+
+// =====================================================
+// MARK: - 5. QUOTIENT SPACE (Ψ SETTLEMENT OPERATOR)
+// =====================================================
+
+public struct DVSMEpsilonSpace {
+
+    public let epsilon: Double
+
+    public func equivalent(_ a: DVSMStateLike, _ b: DVSMStateLike) -> Bool {
+        DVSMMetric.distH(a, b, weights: .default) < epsilon
+    }
+}
+
+public extension DVSMMetricWeights {
+    static let `default` = DVSMMetricWeights(
+        alpha: 1.0,
+        beta: 1.0,
+        gamma: 1.0
+    )
+}
+
+// =====================================================
+// MARK: - 6. Ω DYNAMICS (FLOW FIELD)
+// =====================================================
+
+public protocol DVSMFlowSystem {
+
+    /// Scalar potential over state space
+    func omega(_ state: DVSMStateLike) -> Double
+
+    /// Deterministic state transition operator
+    func omegaFlow(_ state: DVSMStateLike) -> DVSMStateLike
+
+    /// Stability constraint: descent property
+    func isDescending(_ before: DVSMStateLike, _ after: DVSMStateLike) -> Bool
+}
+
+public extension DVSMFlowSystem {
+
+    func isDescending(_ before: DVSMStateLike, _ after: DVSMStateLike) -> Bool {
+        omega(after) <= omega(before)
+    }
+}
+
+// =====================================================
+// MARK: - 7. TRAJECTORY (TIME-INDEXED EVOLUTION)
+// =====================================================
+
+public struct DVSMTrajectory {
+
+    public let initial: DVSMStateLike
+
+    public func step(_ flow: DVSMFlowSystem, _ n: Int) -> DVSMStateLike {
+        var state = initial
+        for _ in 0..<n {
+            state = flow.omegaFlow(state)
+        }
+        return state
+    }
+}
+
+// =====================================================
+// MARK: - 8. ATTRACTOR BASIN
+// =====================================================
+
+public struct DVSMBasin {
+
+    /// Terminal stable state definition
+    public let fixedPoint: DVSMStateLike
+
+    /// Membership condition
+    public func contains(_ state: DVSMStateLike,
+                         flow: DVSMFlowSystem,
+                         steps: Int = 100) -> Bool {
+
+        var current = state
+        for _ in 0..<steps {
+            current = flow.omegaFlow(current)
+        }
+
+        return DVSMMetric.distH(current, fixedPoint,
+                                weights: .default) < 0.0001
+    }
+}
+
+// =====================================================
+// MARK: - 9. SYSTEM INVARIANTS (GENESIS AXIOMS)
+// =====================================================
+
+public enum DVSMInvariants {
+
+    /// Deterministic convergence requirement
+    public static let replayEquivalence = true
+
+    /// Causal closure: no external state influence
+    public static let causalClosure = true
+
+    /// Metric consistency requirement
+    public static let metricStability = true
+
+    /// Observer non-interference
+    public static let observerIsolation = true
+}
+
+// =====================================================
+// MARK: - 10. GENESIS DECLARATION
+// =====================================================
+
+public enum DVSMGenesis {
+
+    /// Core system definition
+    public static let definition =
+    """
+    Reality is the equivalence class of causally valid histories
+    under a bounded metric space (dist_H),
+    evolving under a deterministic flow (ΩFlow),
+    constrained by ε-quotient collapse (Ψ).
+    """
+}
+
+// =====================================================
+// END WHITEPAPER ARTIFACT
+// =====================================================
+
+namespace DVSM
+
+-- =====================================================
+-- 1. PRIMITIVE ONTOLOGY
+-- =====================================================
+
+axiom State : Type
+axiom Event : Type
+
+-- A State is a history-sealed causal object
+axiom History : State → Type
+
+-- =====================================================
+-- 2. METRIC SPACE (CORE AXIOMS)
+-- =====================================================
+
+axiom dist_H : State → State → ℝ
+
+axiom dist_nonneg :
+  ∀ a b, dist_H a b ≥ 0
+
+axiom dist_identity :
+  ∀ a, dist_H a a = 0
+
+axiom dist_symmetry :
+  ∀ a b, dist_H a b = dist_H b a
+
+axiom dist_triangle :
+  ∀ a b c,
+    dist_H a c ≤ dist_H a b + dist_H b c
+
+-- =====================================================
+-- 3. ε-QUOTIENT SPACE (REALITY COLLAPSE SCALE)
+-- =====================================================
+
+axiom ε_H : ℝ
+axiom ε_pos : ε_H > 0
+
+def equiv (a b : State) : Prop :=
+  dist_H a b < ε_H
+
+-- Equivalence class = "Reality Atom"
+def Class (s : State) : Type :=
+  { x : State // equiv s x }
+
+-- =====================================================
+-- 4. CAUSAL STRUCTURE (PARTIAL ORDER MODEL)
+-- =====================================================
+
+axiom precedes : Event → Event → Prop
+
+def concurrent (a b : Event) : Prop :=
+  ¬precedes a b ∧ ¬precedes b a
+
+-- Causal structure is a DAG quotient
+structure CausalGraph where
+  nodes : List Event
+  edges : List (Event × Event)
+
+-- =====================================================
+-- 5. CAUSAL NORMALIZATION (QUOTIENT OPERATOR Ψ PREP)
+-- =====================================================
+
+def normalize (g : CausalGraph) : CausalGraph :=
+  g  -- abstract placeholder: transitive reduction assumed
+
+def causal_equiv (g₁ g₂ : CausalGraph) : Prop :=
+  normalize g₁ = normalize g₂
+
+-- =====================================================
+-- 6. STATE EMBEDDING (METRIC INPUT LAYER)
+-- =====================================================
+
+structure Embedding where
+  h : State → ℝ      -- identity signature (hash-like abstraction)
+  c : State → ℝ      -- causal projection
+  χ : State → ℝ      -- residual causal entropy
+
+-- =====================================================
+-- 7. QUOTIENT DISTANCE FUNCTION (dist_H FINAL FORM)
+-- =====================================================
+
+def dist_Hq (a b : Embedding) : ℝ :=
+  |a.h - b.h| +
+  |a.c - b.c| +
+  |a.χ - b.χ|
+
+-- =====================================================
+-- 8. Ω FIELD (DYNAMICAL ENERGY FUNCTIONAL)
+-- =====================================================
+
+axiom Ω : State → ℝ
+
+def ΩGradient (s : State) : ℝ :=
+  Ω s
+
+-- Flow operator (gradient descent on reality manifold)
+axiom ΩFlow : State → State
+
+axiom Ω_descends :
+  ∀ s,
+    Ω (ΩFlow s) ≤ Ω s
+
+-- =====================================================
+-- 9. TRAJECTORY DYNAMICS
+-- =====================================================
+
+def Trajectory : State → ℕ → State
+| s, 0 => s
+| s, n+1 => ΩFlow (Trajectory s n)
+
+-- =====================================================
+-- 10. ATTRACTOR BASINS (REALITY SETS)
+-- =====================================================
+
+def Basin (s : State) : Type :=
+  { x : State //
+    ∃ N : ℕ,
+      ∀ n ≥ N,
+        Trajectory s n = x }
+
+-- =====================================================
+-- 11. SETTLEMENT OPERATOR Ψ
+-- =====================================================
+
+axiom S : Type
+
+axiom Ψ : S → Type
+
+-- Ψ partitions state space into equivalence clusters
+axiom Ψ_correct :
+  ∀ s₁ s₂,
+    equiv s₁ s₂ →
+    Ψ s₁ = Ψ s₂
+
+-- =====================================================
+-- 12. FIXED POINT REALITY CONDITION
+-- =====================================================
+
+def IsFixed (s : State) : Prop :=
+  ΩFlow s = s
+
+def IsStable (s : State) : Prop :=
+  Ω (ΩFlow s) = Ω s
+
+-- =====================================================
+-- 13. CONVERGENCE (SYSTEM PROPERTY)
+-- =====================================================
+
+def Converges (s : State) : Prop :=
+  ∃ s*,
+    IsFixed s* ∧
+    ∃ N,
+      ∀ n ≥ N,
+        Trajectory s n = s*
+
+-- =====================================================
+-- 14. GENESIS AXIOM (DVSM CORE STATEMENT)
+-- =====================================================
+
+axiom DVSM_Genesis :
+  "Reality = equivalence classes of causal histories under ε_H metric,
+   evolving under ΩFlow, constrained by dist_H consistency."
+
+-- =====================================================
+-- END GENESIS v2
+-- =====================================================
+
+end DVSM
