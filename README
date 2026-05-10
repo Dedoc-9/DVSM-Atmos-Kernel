@@ -33,9 +33,11 @@
 // + Cross-Shard Execution Portability Guarantee Enabled (Deterministic Rehydration Contract)
 // + Runtime Equivalence Class Enforcement (Execution must be replay-identical across all supported nodes)
 //
-// =====================================================
-// DVSM-ATOMOS: PORTABILITY & DEPLOYMENT CONTRACT LAYER
-// =====================================================
+// ANTI-CHEAT LAYER (by design):
+// DVSM Adversarial Integrity Kernel (AIK)
+// + Canonical State Enforcement
+// + Byzantine Drift Rejection
+// + Replay-Execution Equivalence Gate
 //
 /**
  # ARCHITECTURAL ARTIFACTS
@@ -85,7 +87,120 @@
 // Only the Kernel defines state.
 // All other layers constrain, transport, or observe — but never define truth.
 //
-=====================================================
+// =====================================================
+// DVSM-ATOMOS: NOISE DECONSTRUCTION LAYER
+// =====================================================
+// PURPOSE:
+// Converts non-deterministic system artifacts ("noise")
+// into structured, either discardable or stabilizable signals.
+//
+// Noise is NOT data failure.
+// Noise is "unmodeled state divergence from canonical execution".
+// =====================================================
+// NOISE CLASSES:
+// -----------------------------------------------------
+// N1: Network Noise        (latency, jitter, packet reordering)
+// N2: Execution Noise      (thread scheduling variance, timing drift)
+// N3: Cryptographic Noise  (non-canonical serialization, encoding variance)
+// N4: Byzantine Noise      (intentional divergence / adversarial injection)
+// N5: Semantic Noise       (non-binding or malformed intent / witness drift)
+//
+
+public enum DVSMNoiseClass {
+    case network
+    case execution
+    case cryptographic
+    case byzantine
+    case semantic
+}
+
+// =====================================================
+// NOISE OBSERVATION STRUCTURE
+// =====================================================
+
+public struct DVSMNoiseSample {
+    public let classType: DVSMNoiseClass
+    public let magnitude: Double
+    public let sourceNodeID: String
+    public let timestamp: UInt64
+    public let rawDelta: Data
+}
+
+// =====================================================
+// NOISE DECONSTRUCTION ENGINE
+// =====================================================
+
+public final class DVSMNoiseDeconstructor {
+
+    /// Converts raw system variance into structured noise metrics
+    public func deconstruct(_ sample: DVSMNoiseSample) -> DVSMNoiseClass {
+
+        // Core principle:
+        // Noise is classified by *source of determinism violation*, not content.
+
+        switch sample.classType {
+
+        case .network:
+            return .network  // delay/jitter absorbed by temporal normalization layer
+
+        case .execution:
+            return .execution  // scheduling drift mapped to deterministic replay correction
+
+        case .cryptographic:
+            return .cryptographic  // canonicalization failure -> re-encoding required
+
+        case .byzantine:
+            return .byzantine  // explicitly adversarial -> rejection + quarantine
+
+        case .semantic:
+            return .semantic  // non-binding intent divergence -> ignored or hollowed
+        }
+    }
+
+    // =====================================================
+    // NOISE RESOLUTION POLICY (Ω-RESOLUTION GATE)
+    // =====================================================
+
+    public func resolve(_ sample: DVSMNoiseSample) -> Bool {
+
+        let classification = deconstruct(sample)
+
+        switch classification {
+
+        case .network:
+            return true // absorbed via deterministic replay buffering
+
+        case .execution:
+            return true // corrected via canonical replay normalization
+
+        case .cryptographic:
+            return false // must re-enter canonicalization pipeline
+
+        case .semantic:
+            return true // may be hollowed (non-binding state)
+
+        case .byzantine:
+            return false // hard rejection (anti-cheat boundary trigger)
+        }
+    }
+}
+
+// =====================================================
+// SYSTEM ROLE IN DVSM STACK
+// =====================================================
+//
+// Noise Deconstruction sits BELOW:
+//   - Consensus
+//   - Replay Engine
+//   - Attractor Solver
+//
+// AND ABOVE:
+//   - Raw Transport Layer (QUIC / swarm messaging)
+//
+// It acts as the FIRST STRUCTURAL FILTER
+// before state enters determinism enforcement.
+//
+// ====================================================================================================
 🧠 SYSTEM SUMMARY
 =====================================================
 
