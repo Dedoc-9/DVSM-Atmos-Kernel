@@ -1,7 +1,9 @@
 // =====================================================
 // DVSM-ATOMOS: MASTER GENESIS MANIFEST (v∞.0.1-REFINED)
 // MODULE: Ω∞.AtomicClosure
-// PURPOSE: Bit-Stable, Canonicalized, Adversarial-Aware Closure Kernel
+// PURPOSE: Deterministic, bit-stable canonicalization and closure kernel ensuring adversarially resilient Φ-fixed-point convergence across quotient basins
+// PURPOSE: Bit-stable, canonicalized closure kernel for adversarially invariant Φ-fixed-point convergence over quotient basin structure
+// Author: Daniel J. Dillberg
 // =====================================================
 //
 // REVISION NOTE:
@@ -730,3 +732,139 @@ public func DVSM_BOOT() {
     print("[DVSM Ω∞] Finality = Φ-fixed points only")
 }
 // =====================================================
+--------------------------- MODULE DVSM_Omega_Final ---------------------------
+EXTENDS Naturals, Sequences, FiniteSets
+
+(***************************************************************************)
+(* 0. CORE TYPES                                                           *)
+(***************************************************************************)
+
+CONSTANTS
+    Nodes,
+    Adversaries,
+    StateSpace,
+    HonestNode
+
+VARIABLES
+    dag,
+    node_views,
+    finalized
+
+(***************************************************************************)
+(* 1. AVM VISIBILITY LAYER (EPISTEMIC CONSTRAINT)                          *)
+(***************************************************************************)
+
+VisibilityClass(n) \in {"Class_I", "Class_II", "Class_III", "Class_IV"}
+
+K(n, S) ==
+    CASE VisibilityClass(n) = "Class_I"   -> LocalFrontier(n, S)
+      [] VisibilityClass(n) = "Class_II"  -> ShardFrontier(n, S)
+      [] VisibilityClass(n) = "Class_III" -> DelayedGlobal(S)
+      [] VisibilityClass(n) = "Class_IV"  -> FutureSim(S, 3)
+
+(***************************************************************************)
+(* 2. PHI OPERATOR (CLOSURE TRANSFORMATION)                                *)
+(***************************************************************************)
+
+ESL_PCSE_Filter(view) ==
+    { e \in view :
+        ~ \E e2 \in view :
+            /\ e.clock = e2.clock
+            /\ e.node = e2.node
+            /\ e.hash /= e2.hash }
+
+CVFC_Select(S) ==
+    CHOOSE f \in Frontiers(S) :
+        \A g \in Frontiers(S) : Weight(f) >= Weight(g)
+
+Phi(S, n) ==
+    LET visible == K(n, S) IN
+    LET clean   == ESL_PCSE_Filter(visible) IN
+    Canonicalize(CVFC_Select(clean))
+
+IsPhiFixed(S, n) == Phi(S, n) = Phi(Phi(S, n), n)
+
+(***************************************************************************)
+(* 3. BASIN STRUCTURE (ATTRACTOR GEOMETRY)                                 *)
+(***************************************************************************)
+
+Basin(S) ==
+    { S_raw \in StateSpace : Phi(S_raw, HonestNode) = S }
+
+(***************************************************************************)
+(* 4. CLASS IV ADVERSARIAL STEERING (META-OPTIMIZATION MODEL)             *)
+(***************************************************************************)
+
+IsMaliciouslyPreferred(S, a) ==
+    /\ a \in Adversaries
+    /\ TRUE  \* abstract preference predicate
+
+ClassIV_Steer(a, S) ==
+    LET visible == K(a, S) IN
+    LET targets ==
+        { T \in StateSpace :
+            /\ IsPhiFixed(T, a)
+            /\ IsMaliciouslyPreferred(T, a)
+        }
+    IN
+    IF targets /= {}
+    THEN InjectCausalBias(a, visible, CHOOSE t \in targets)
+    ELSE S
+
+(***************************************************************************)
+(* 5. ADVERSARIAL EQUIVALENCE (KEY QUOTIENT STEP)                          *)
+(***************************************************************************)
+
+AdversariallyEquivalent(S1, S2, a) ==
+    /\ Phi(S1, a) = Phi(S2, a)
+    /\ K(a, S1) = K(a, S2)
+
+(***************************************************************************)
+(* 6. BASIN COLLAPSE AXIOM (FINAL VEL GATE)                                *)
+(***************************************************************************)
+
+BasinCollapse ==
+    \A S1, S2 \in StateSpace :
+        (\E a \in Adversaries :
+            AdversariallyEquivalent(S1, S2, a))
+        => (Basin(S1) = Basin(S2))
+
+(***************************************************************************)
+(* 7. SELECTION IMMUNITY (STRONG FORM)                                     *)
+(***************************************************************************)
+
+Selection_Immune_Strong ==
+    \A a \in Adversaries :
+        Cardinality({ Basin(S) : S \in finalized }) = 1
+
+(***************************************************************************)
+(* 8. FINALITY OPERATOR (Ω∞ FIXED POINT)                                  *)
+(***************************************************************************)
+
+OmegaFinal(S) ==
+    /\ IsPhiFixed(S, HonestNode)
+    /\ \A n \in Nodes : IsPhiFixed(S, n)
+    /\ \A a \in Adversaries :
+        ~SteersToDifferentBasin(a, S)
+
+SteersToDifferentBasin(a, S) ==
+    \E S2 \in StateSpace :
+        /\ S2 \notin Basin(S)
+        /\ ClassIV_Steer(a, S) = S2
+
+(***************************************************************************)
+(* 9. INVARIANTS (MODEL CHECK TARGETS)                                     *)
+(***************************************************************************)
+
+AVM_Safety ==
+    \A n \in Nodes :
+        S \in finalized => IsPhiFixed(S, n)
+
+Basin_Uniqueness ==
+    Selection_Immune_Strong /\ BasinCollapse
+
+Idempotence ==
+    \A n \in Nodes, S \in StateSpace :
+        Phi(Phi(S, n), n) = Phi(S, n)
+
+=============================================================================
