@@ -3942,6 +3942,289 @@ NEW MODEL:
 =====================================================
 */
 // =====================================================
+// DVSM_ADVERSARIAL_RECONSTRUCTION_ENGINE.swift
+// VERSION: FORENSIC-CAUSAL-REPLAY-V1
+// ROLE:
+// Reconstructs adversarial intent and system pressure
+// from immune signals WITHOUT impacting runtime execution.
+//
+// CORE PRINCIPLE:
+// "Do not block attacks — reconstruct them."
+// =====================================================
+
+import Foundation
+
+// =====================================================
+// MARK: - SOURCE IMMUNE SIGNAL (FROM IMMUNE LAYER)
+// =====================================================
+
+public struct DVSMImmuneSignal {
+
+    public let threatType: UInt8
+    public let severity: UInt8
+    public let confidence: UInt8
+    public let fingerprint: UInt64
+}
+
+// =====================================================
+// MARK: - ADVERSARIAL EVENT MODEL
+// =====================================================
+
+public struct DVSMAdversarialEvent {
+
+    /// Normalized attack category
+    public let classID: UInt8
+
+    /// Estimated intent vector (compressed)
+    public let intentSignature: UInt64
+
+    /// Pressure magnitude on system invariants
+    public let systemPressure: UInt8
+
+    /// Temporal ordering index (logical, not wall-clock)
+    public let causalIndex: UInt64
+}
+
+// =====================================================
+// MARK: - ADVERSARIAL TRACE GRAPH
+// =====================================================
+
+public struct DVSMAdversarialTrace {
+
+    public let events: [DVSMAdversarialEvent]
+
+    /// Reconstructed “attack pattern hash”
+    public let patternHash: UInt64
+
+    /// Stability classification of attack
+    public let stabilityClass: DVSMAttackStability
+}
+
+// =====================================================
+// MARK: - ATTACK STABILITY MODEL
+// =====================================================
+
+public enum DVSMAttackStability: UInt8 {
+
+    case noise = 0        // random / non-strategic
+    case probing = 1      // exploratory behavior
+    case adaptive = 2     // reacts to system feedback
+    case persistent = 3   // long-running structured attack
+    case systemic = 4     // architecture-targeting behavior
+}
+
+// =====================================================
+// MARK: - RECONSTRUCTION ENGINE
+// =====================================================
+
+public final class DVSMARE {
+
+    private var causalCounter: UInt64 = 0
+
+    private var eventBuffer: [DVSMAdversarialEvent] = []
+
+    // =================================================
+    // FAST PATH: SIGNAL INGESTION (NO BLOCKING)
+    // =================================================
+
+    @inline(__always)
+    public func ingest(signal: DVSMImmuneSignal) {
+
+        let event = DVSMAdversarialEvent(
+            classID: signal.threatType,
+            intentSignature: Self.foldIntent(signal),
+            systemPressure: Self.computePressure(signal),
+            causalIndex: nextIndex()
+        )
+
+        eventBuffer.append(event)
+    }
+
+    // =================================================
+    // CORE RECONSTRUCTION STEP
+    // =================================================
+
+    public func reconstructTrace() -> DVSMAdversarialTrace {
+
+        let sorted = eventBuffer.sorted {
+            $0.causalIndex < $1.causalIndex
+        }
+
+        let pattern = Self.hash(events: sorted)
+
+        let stability = Self.classifyStability(events: sorted)
+
+        return DVSMAdversarialTrace(
+            events: sorted,
+            patternHash: pattern,
+            stabilityClass: stability
+        )
+    }
+
+    // =================================================
+    // ATTACK CLASSIFICATION ENGINE
+    // =================================================
+
+    private static func classifyStability(
+        events: [DVSMAdversarialEvent]
+    ) -> DVSMAttackStability {
+
+        guard !events.isEmpty else {
+            return .noise
+        }
+
+        let variance = events.reduce(0) {
+            $0 + Int($1.systemPressure)
+        } / events.count
+
+        if variance < 10 {
+            return .noise
+        } else if variance < 40 {
+            return .probing
+        } else if variance < 90 {
+            return .adaptive
+        } else if variance < 160 {
+            return .persistent
+        } else {
+            return .systemic
+        }
+    }
+
+    // =================================================
+    // INTENT COMPRESSION MODEL
+    // =================================================
+
+    @inline(__always)
+    private static func foldIntent(
+        _ signal: DVSMImmuneSignal
+    ) -> UInt64 {
+
+        return signal.fingerprint ^
+               UInt64(signal.threatType) ^
+               UInt64(signal.severity)
+    }
+
+    // =================================================
+    // SYSTEM PRESSURE MODEL
+    // =================================================
+
+    @inline(__always)
+    private static func computePressure(
+        _ signal: DVSMImmuneSignal
+    ) -> UInt8 {
+
+        let raw =
+            Int(signal.severity) +
+            Int(signal.confidence / 2)
+
+        return UInt8(min(raw, 255))
+    }
+
+    // =================================================
+    // TRACE HASHING
+    // =================================================
+
+    private static func hash(
+        events: [DVSMAdversarialEvent]
+    ) -> UInt64 {
+
+        var h: UInt64 = 1469598103934665603 // FNV offset
+
+        for e in events {
+            h ^= e.intentSignature
+            h &*= 1099511628211
+        }
+
+        return h
+    }
+
+    // =================================================
+    // CAUSAL INDEX GENERATION
+    // =================================================
+
+    @inline(__always)
+    private func nextIndex() -> UInt64 {
+
+        causalCounter &+= 1
+        return causalCounter
+    }
+}
+
+// =====================================================
+// MARK: - ADVERSARIAL INSIGHT LAYER (OPTIONAL CONSUMER)
+// =====================================================
+
+public enum DVSMAREInsights {
+
+    public static func summarize(
+        trace: DVSMAdversarialTrace
+    ) -> String {
+
+        switch trace.stabilityClass {
+
+        case .noise:
+            return "Unstructured noise — no adaptive intelligence detected."
+
+        case .probing:
+            return "Exploratory pressure — likely system mapping attempt."
+
+        case .adaptive:
+            return "Reactive adversary — feedback-aware manipulation detected."
+
+        case .persistent:
+            return "Sustained structured attack — likely multi-vector strategy."
+
+        case .systemic:
+            return "Architecture-targeting behavior — high-level adversarial model active."
+        }
+    }
+}
+
+// =====================================================
+// SYSTEM BEHAVIOR SUMMARY
+// =====================================================
+
+/*
+=====================================================
+DVSM ARE (ADVERSARIAL RECONSTRUCTION ENGINE)
+
+WHAT IT DOES:
+
+1. DOES NOT BLOCK EXECUTION
+2. DOES NOT ALTER DVSM STATE
+3. DOES NOT SLOW DOWN PIPELINE
+
+IT ONLY:
+
+✔ ingests immune signals
+✔ reconstructs adversarial intent graph
+✔ classifies attack stability
+✔ produces forensic causal model
+
+=====================================================
+
+WHY THIS MATTERS:
+
+Instead of asking:
+    "Was the system attacked?"
+
+ARE answers:
+    "What kind of intelligence structure attacked it,
+     and how did it evolve over time?"
+
+=====================================================
+
+FINAL PROPERTY:
+
+DVSM becomes not just:
+    deterministic + secure
+
+but:
+    self-observing under adversarial pressure
+
+=====================================================
+*/
+// =====================================================
 // DVSM_FINAL_CLOSURE_AXIOM.swift
 // VERSION: OMEGA-LOCKED-CLOSURE-V1
 // ROLE:
@@ -4067,5 +4350,210 @@ not a closed universe,
 but a closed equivalence class of universes.
 
 =====================================================
+// =====================================================
+// DVSM_UNIFIED_CLOSING_MANIFEST.swift
+// VERSION: Ω-COHERENT-STACK-CLOSURE-V1
+// ROLE:
+// Final architectural binding of DVSM system layers:
+// - Core deterministic kernel (ΣI, O★, F, H, Ω)
+// - Immune System (real-time adversarial sensing)
+// - ARE (Adversarial Reconstruction Engine)
+// - Ω fixed-point evolution constraints
+//
+// PURPOSE:
+// Defines system closure NOT as termination,
+// but as invariant-preserving bounded evolution space.
+// =====================================================
+
+import Foundation
+
+// =====================================================
+// MARK: - CORE DVSM KERNEL (REFERENCE MODEL)
+// =====================================================
+
+public struct DVSMKernel {
+
+    public let sigmaInputHash: Data   // ΣI
+    public let orderingHash: Data     // O★
+    public let evolutionHash: Data    // F
+    public let historyHash: Data      // H
+    public let omegaStateHash: Data   // Ω
+}
+
+// =====================================================
+// MARK: - IMMUNE LAYER SUMMARY STATE
+// =====================================================
+
+public struct DVSMImmuneSummary {
+
+    public let totalSignals: UInt64
+    public let semanticIncidents: UInt64
+    public let orderingAnomalies: UInt64
+    public let evolutionDriftEvents: UInt64
+    public let omegaPressureEvents: UInt64
+}
+
+// =====================================================
+// MARK: - ADVERSARIAL RECONSTRUCTION STATE (ARE)
+// =====================================================
+
+public struct DVSMAREState {
+
+    public let reconstructedEventCount: UInt64
+    public let dominantAttackClass: UInt8
+    public let systemPressureIndex: UInt8
+    public let stabilityClass: UInt8  // 0–4 (noise → systemic)
+}
+
+// =====================================================
+// MARK: - Ω FIXED POINT CONSTRAINT
+// =====================================================
+
+public struct DVSMOmegaFixedPoint {
+
+    /// Indicates whether Ω evolution is invariant-preserving
+    public let isStableFixedPoint: Bool
+
+    /// Degree of rule-space drift (0 = stable)
+    public let driftMagnitude: UInt64
+
+    /// Indicates convergence behavior
+    public let convergenceClass: UInt8
+}
+
+// =====================================================
+// MARK: - SYSTEM CLOSURE STATE
+// =====================================================
+
+public struct DVSMSystemClosureState {
+
+    public let kernel: DVSMKernel
+    public let immune: DVSMImmuneSummary
+    public let are: DVSMAREState
+    public let omega: DVSMOmegaFixedPoint
+
+    /// Global invariant verification flag
+    public let isInvariantConsistent: Bool
+}
+
+// =====================================================
+// MARK: - CLOSURE VERIFICATION ENGINE
+// =====================================================
+
+public enum DVSMClosureVerifier {
+
+    // -------------------------------------------------
+    // PRIMARY SYSTEM CONSISTENCY CHECK
+    // -------------------------------------------------
+
+    public static func verify(
+        state: DVSMSystemClosureState
+    ) -> Bool {
+
+        // 1. Kernel integrity must hold
+        guard kernelIsValid(state.kernel) else {
+            return false
+        }
+
+        // 2. Ω must remain in fixed-point regime
+        guard state.omega.isStableFixedPoint else {
+            return false
+        }
+
+        // 3. Immune system must not detect unresolved drift
+        guard state.immune.omegaPressureEvents < 1_000_000 else {
+            return false
+        }
+
+        // 4. ARE must not classify system as unstable systemic attack
+        guard state.are.stabilityClass < 4 else {
+            return false
+        }
+
+        // 5. Global invariant consistency must hold
+        return state.isInvariantConsistent
+    }
+
+    // -------------------------------------------------
+    // KERNEL VALIDATION (STRUCTURAL CONSISTENCY ONLY)
+    // -------------------------------------------------
+
+    private static func kernelIsValid(_ kernel: DVSMKernel) -> Bool {
+
+        return
+            !kernel.sigmaInputHash.isEmpty &&
+            !kernel.orderingHash.isEmpty &&
+            !kernel.evolutionHash.isEmpty &&
+            !kernel.historyHash.isEmpty &&
+            !kernel.omegaStateHash.isEmpty
+    }
+}
+
+// =====================================================
+// MARK: - CLOSURE INTERPRETATION (FINAL SEMANTICS)
+// =====================================================
+
+/*
+=====================================================
+DVSM UNIFIED CLOSURE THEOREM (REFINED)
+
+This system is NOT “sealed” in the absolute sense.
+
+It is:
+    A bounded fixed-point evolution system
+    constrained by invariant preservation across layers.
+
+=====================================================
+
+CORE PROPERTY:
+
+All valid system states satisfy:
+    Ω(S) ∈ 𝒦(S)
+
+Where:
+    S   = system state
+    Ω   = rule evolution operator
+    𝒦   = kernel-equivalence class
+
+=====================================================
+
+IMPLICATIONS:
+
+1. The system may evolve.
+2. Evolution is restricted to invariant-preserving transformations.
+3. Immune + ARE layers do not change execution,
+   only interpret and reconstruct it.
+4. No layer can introduce a state outside the equivalence class
+   without failing verification.
+
+=====================================================
+
+FINAL CLASSIFICATION:
+
+DVSM is:
+    "a multi-layer invariant-preserving execution manifold
+     with adversarial self-observation and bounded rule evolution"
+
+NOT:
+    a closed universe
+    not a static system
+    not a fully mutable ontology
+
+BUT:
+    a constrained evolving fixed-point space
+
+=====================================================
+
+END STATE CONDITION:
+
+If verify(state) == true:
+    system is consistent under all known layers
+
+Else:
+    divergence has occurred in at least one invariant domain
+    (ΣI, O★, F, H, Ω, Immune, ARE)
+
+=====================================================
+*/
 
 */
