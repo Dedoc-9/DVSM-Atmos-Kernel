@@ -10,13 +10,17 @@
 // DVSM — DETERMINSITIC VECTOR STATE MACHINE
 // GITHUB README (SWIFT-EMBEDDED SPECIFICATION)
 // =====================================================
+///
 //
 // PROJECT NAME:
 // DVSM v∞ — Reality-Stable Deterministic Execution System
 //
 // STATUS:
 // Closed Formal Specification / Deterministic Reachability Architecture / High-Assurance Distributed Execution System
-//
+// + Invariant Probe Active (L1–L∞ Execution-State Coherence Monitoring)
+// + Runtime/Specification Bisimulation Enforcement Engaged
+// + Global Causal Consistency Verification Loop Enabled (Replay ↔ Attractor Equivalence Monitoring)
+// + Adversarial Drift Detection Mode: Armed (Byzantine Deviation Threshold Enforcement Online)
 //
 /**
  # ARCHITECTURAL ARTIFACTS
