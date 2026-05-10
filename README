@@ -20,7 +20,7 @@
 // DVSM-ATOMOS: PORTABILITY & DEPLOYMENT CONTRACT LAYER
 // =====================================================
 //
-// STATUS:
+// STATUS (Genesis v3):
 // Closed Formal Specification / Deterministic Reachability Architecture / High-Assurance Distributed Execution System
 // + Invariant Probe Active (L1–L∞ Execution-State Coherence Monitoring)
 // + Runtime/Specification Bisimulation Enforcement Engaged
